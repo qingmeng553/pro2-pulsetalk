@@ -1,0 +1,151 @@
+:root {
+  --brand: #5b7cfa;
+  --brand-dark: #4a68e0;
+  --brand-gradient: linear-gradient(135deg, #5b7cfa 0%, #8b5cf6 100%);
+  --bg: #f4f6fb;
+  --card: #ffffff;
+  --text: #2b3350;
+  --text-sub: #7a8299;
+  --border: #e8ebf4;
+  --danger: #f56c6c;
+  --warn: #e6a23c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+}
+
+a {
+  color: var(--brand);
+  text-decoration: none;
+}
+
+/* ---------- 通用布局 ---------- */
+.page-container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 20px 16px 60px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 4px 0 16px;
+}
+
+.section-title::before {
+  content: '';
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--brand-gradient);
+}
+
+/* ---------- 管理员盾牌徽章 ---------- */
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 5px;
+  padding: 1px 7px;
+  font-size: 12px;
+  line-height: 16px;
+  color: #fff;
+  background: var(--brand-gradient);
+  border-radius: 10px;
+  vertical-align: 1px;
+}
+
+/* ---------- 角色(游客置灰) ---------- */
+.need-login {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.need-login:hover {
+  opacity: 1;
+}
+
+/* ---------- 空状态 ---------- */
+.empty-tip {
+  text-align: center;
+  color: var(--text-sub);
+  padding: 48px 0;
+}
+
+/* ---------- markdown 正文 ---------- */
+.markdown-body {
+  line-height: 1.75;
+  word-break: break-word;
+  font-size: 15px;
+  color: #333a4f;
+}
+.markdown-body h1, .markdown-body h2, .markdown-body h3 {
+  margin: 18px 0 10px;
+}
+.markdown-body pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 14px 16px;
+  border-radius: 10px;
+  overflow: auto;
+  font-size: 13.5px;
+}
+.markdown-body code {
+  background: #eef1f8;
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 13px;
+  font-family: Consolas, 'Courier New', monospace;
+}
+.markdown-body pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+.markdown-body blockquote {
+  margin: 10px 0;
+  padding: 4px 14px;
+  border-left: 4px solid var(--brand);
+  background: #f0f3ff;
+  color: var(--text-sub);
+  border-radius: 0 8px 8px 0;
+}
+.markdown-body img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+.markdown-body table {
+  border-collapse: collapse;
+}
+.markdown-body th, .markdown-body td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+}
+.markdown-body ul, .markdown-body ol {
+  padding-left: 22px;
+}
+.markdown-body a {
+  color: var(--brand);
+}
+
+/* ---------- Element 细调 ---------- */
+.el-button--primary {
+  --el-button-bg-color: var(--brand);
+  --el-button-border-color: var(--brand);
+  --el-button-hover-bg-color: var(--brand-dark);
+  --el-button-hover-border-color: var(--brand-dark);
+  --el-button-active-bg-color: var(--brand-dark);
+  --el-button-active-border-color: var(--brand-dark);
+}

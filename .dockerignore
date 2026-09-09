@@ -1,0 +1,23 @@
+# Maven 构建产物（构建镜像前在本机先执行 mvn clean install）
+target/
+*.jar
+!.mvn/wrapper/*.jar
+
+# IDE 文件
+.idea/
+*.iml
+.vscode/
+
+# 前端工程（前端产物单独构建/部署，不进后端镜像上下文）
+pro2-frontend/
+node_modules/
+dist/
+
+# 日志与临时文件
+*.log
+logs/
+
+# 本地数据卷备份等
+minio-data/
+mysql-data/
+redis-data/

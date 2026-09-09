@@ -1,0 +1,43 @@
+# ============================================================================
+# pro2 点评贴吧社区 —— 公共配置(所有 profile 共享)
+# 环境差异化配置见 application-dev.yml(本机) / application-docker.yml(容器)
+# ============================================================================
+server:
+  port: 8085
+
+spring:
+  application:
+    name: PulseTalk
+  profiles:
+    active: dev            # 默认激活本机开发 profile；容器环境由 SPRING_PROFILES_ACTIVE=docker 覆盖
+  servlet:
+    multipart:
+      max-file-size: 6MB           # 单文件上限(业务层另有 5MB 严格校验)
+      max-request-size: 30MB       # 单次请求总大小(支持一次上传多张配图)
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: non_null   # 响应 JSON 忽略 null 字段，精简体积
+
+# ---------------- MyBatis-Plus ----------------
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    # 开发期打印 SQL 便于排查；生产可注释掉
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto               # 主键依赖数据库自增
+
+# ---------------- Sa-Token(Redis 会话) ----------------
+sa-token:
+  token-name: satoken            # token 名称(前端请求头携带: satoken)
+  timeout: 604800                # token 有效期(秒)=7天
+  active-timeout: -1             # 不启用“最低活跃频率”，避免误踢
+  is-concurrent: true            # 允许同一账号多端登录
+  is-share: false                # 同端登录互不共享 token(每次登录生成新 token)
+  token-style: uuid
+  is-log: false
+  is-read-cookie: false          # 仅从请求头读取 token
+  # 说明：sa-token-redis-jackson 已自动将会话(SaSession/token)持久化到 Redis

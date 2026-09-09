@@ -1,0 +1,44 @@
+### IntelliJ IDEA ###
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+.kotlin
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+
+### Java / Maven ###
+target/
+*.class
+*.log
+
+### 本地运行数据 ###
+minio-data/
+mysql-data/
+redis-data/
+
+### 前端 ###
+pro2-frontend/node_modules/
+pro2-frontend/dist/

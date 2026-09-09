@@ -1,0 +1,115 @@
+# ============================================================
+# pro2 点评贴吧社区 —— Docker Compose 编排（4 个服务）
+#   mysql8  redis:7-alpine  minio  后端应用 pro2
+#
+# 使用前提：本机已执行 mvn clean install -DskipTests 生成
+#   target/pro2-1.0.0.jar（容器内不做 Maven 编译）
+#
+# 启动：docker compose up -d --build
+# 说明：
+#   * 容器间一律使用服务名(mysql/redis/minio)互访，禁止 localhost
+#   * depends_on 使用 condition: service_healthy（依赖健康检查）
+#   * sql/ 目录挂载到 mysql 初始化目录，首次启动自动建表并预置数据
+# ============================================================
+name: pro2-community
+
+services:
+  # ---------------- MySQL 8 ----------------
+  mysql:
+    image: mysql:8.0
+    container_name: pro2-mysql
+    restart: always
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: root2297752516      # root 密码
+      MYSQL_DATABASE: community_db             # 自动创建业务库
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=caching_sha2_password
+    ports:
+      # 如需在宿主机用客户端连接容器内 MySQL，可放开下行（注意避免与本机 3306 冲突）
+      # - "3306:3306"
+      - "13306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql                                   # 数据持久化
+      - ./sql:/docker-entrypoint-initdb.d:ro                        # 初始化 SQL(仅首次启动执行)
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+
+  # ---------------- Redis 7 ----------------
+  redis:
+    image: redis:7-alpine
+    container_name: pro2-redis
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]   # 开启 AOF 持久化
+    ports:
+      # 如需宿主机直连容器 Redis，可放开下行（注意避免与本机 6379 冲突）
+      - "16379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  # ---------------- MinIO 对象存储 ----------------
+  minio:
+    image: minio/minio:latest
+    container_name: pro2-minio
+    restart: always
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    command: ["server", "/data", "--console-address", ":9001"]
+    ports:
+      - "9000:9000"   # S3 API（应用返回给浏览器的图片 URL 走该端口）
+      - "9001:9001"   # 管理控制台
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      # MinIO 官方健康检查接口；镜像内含 curl 时生效（个别精简 tag 可能不含，可按需更换）
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  # ---------------- pro2 后端应用 ----------------
+  pro2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pro2-community:1.0.0
+    container_name: pro2-app
+    restart: always
+    environment:
+      TZ: Asia/Shanghai
+      SPRING_PROFILES_ACTIVE: docker   # 激活 application-docker.yml(host=服务名)
+    ports:
+      - "8085:8085"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    # 应用自身健康检查在 Dockerfile 内已声明，此处补充 docker 层面状态
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8085/demo/ping >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+# ---------------- 命名数据卷（持久化） ----------------
+volumes:
+  mysql-data:
+  redis-data:
+  minio-data:

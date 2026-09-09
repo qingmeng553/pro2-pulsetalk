@@ -1,0 +1,53 @@
+# ============================================================================
+# PulseTalk —— Docker 容器环境配置 application-docker.yml
+# 由 docker-compose 注入 SPRING_PROFILES_ACTIVE=docker 激活
+#
+# 所有连接信息均可通过环境变量覆盖(便于生产部署时注入密钥/公网地址)：
+#   MYSQL_ROOT_PASSWORD   数据库root密码(默认 root2297752516)
+#   REDIS_PASSWORD        Redis密码(默认空，容器内网可不开)
+#   MINIO_ACCESS_KEY      MinIO账号(默认 minioadmin)
+#   MINIO_SECRET_KEY      MinIO密钥(默认 minioadmin123)
+#   MINIO_ENDPOINT        SDK连接地址(容器内访问，默认 http://minio:9000)
+#   MINIO_PUBLIC_ENDPOINT 返回给浏览器加载图片的地址(生产改为 http://域名/files)
+#
+# 约束：容器内部访问 mysql/redis/minio 一律使用服务名，禁止 localhost
+# ============================================================================
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://mysql:3306/community_db?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    username: root
+    password: ${MYSQL_ROOT_PASSWORD:root2297752516}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 0
+
+# 生产环境不打印 SQL(本地开发由 application.yml 的 stdout 覆盖)
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+
+# ---------------- MinIO(容器环境，值可由环境变量覆盖) ----------------
+minio:
+  # 容器网络内使用服务名 minio
+  endpoint: ${MINIO_ENDPOINT:http://minio:9000}
+  # 浏览器访问图片的地址：
+  #   - 开发编排(开放9000端口)：http://localhost:9000
+  #   - 生产(经 Nginx /files 反代，仅开放80/443)：http://你的域名或公网IP/files
+  public-endpoint: ${MINIO_PUBLIC_ENDPOINT:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin123}
+  bucket: community-upload

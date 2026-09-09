@@ -1,0 +1,37 @@
+# ============================================================================
+# pro2 —— 本机开发环境配置 application-dev.yml
+# 约定：
+#   MySQL 使用 docker-compose 中的 mysql 服务(宿主机端口 13306)，账号密码为容器内
+#   MYSQL_ROOT_PASSWORD(root2297752516)，首次启动自动执行 sql/init.sql 建表+种子数据；
+#   Redis 使用本机 6379；MinIO 使用 docker-compose 中的 minio(minioadmin/minioadmin123)
+# 注意：本文件为本地开发专用，请勿修改服务间依赖关系
+# ============================================================================
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:13306/community_db?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    username: root
+    password: root2297752516
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 0
+
+# ---------------- MinIO(Docker compose, 与容器内凭据一致) ----------------
+minio:
+  endpoint: http://127.0.0.1:9000        # SDK 连接地址(后端->MinIO)
+  public-endpoint: http://127.0.0.1:9000  # 返回给浏览器访问的图片地址(公网部署时改为主机外网地址)
+  access-key: minioadmin
+  secret-key: minioadmin123
+  bucket: community-upload                # 桶名称(程序启动自动创建并设置公共读策略)
