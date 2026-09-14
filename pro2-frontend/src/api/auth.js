@@ -22,3 +22,26 @@ export const apiUploadAvatar = (file) => {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
 }
+
+// ==================== v3 账号自助 ====================
+
+// PUT /auth/profile 修改昵称(改名)
+export const apiUpdateProfile = (nickname) => request.put('/auth/profile', { nickname })
+
+// PUT /auth/password 修改密码(校验原密码)
+export const apiUpdatePassword = (oldPassword, newPassword) =>
+  request.put('/auth/password', { oldPassword, newPassword })
+
+// GET /auth/security-question 查询密保问题状态
+export const apiSecurityQuestion = () => request.get('/auth/security-question')
+
+// POST /auth/security-question 设置密保问题(问题/答案均为用户自定义，仅可设置一次)
+export const apiSetSecurityQuestion = (question, answer) =>
+  request.post('/auth/security-question', { question, answer })
+
+// POST /auth/forgot/question 忘记密码-查询密保问题(公开)
+export const apiForgotQuestion = (username) => request.post('/auth/forgot/question', { username })
+
+// POST /auth/forgot/reset 忘记密码-校验答案并重置密码(公开)
+export const apiForgotReset = (username, answer, newPassword) =>
+  request.post('/auth/forgot/reset', { username, answer, newPassword })

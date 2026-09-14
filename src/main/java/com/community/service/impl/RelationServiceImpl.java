@@ -1,12 +1,15 @@
 package com.community.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.community.common.api.ResultCode;
 import com.community.common.exception.BusinessException;
 import com.community.common.util.AuthorVOs;
+import com.community.entity.ChatMessage;
 import com.community.entity.SysUser;
 import com.community.entity.UserBlacklist;
 import com.community.entity.UserFriend;
+import com.community.mapper.ChatMessageMapper;
 import com.community.mapper.PostMapper;
 import com.community.mapper.SysUserMapper;
 import com.community.mapper.UserBlacklistMapper;
@@ -50,6 +53,7 @@ public class RelationServiceImpl implements RelationService {
     private final UserFriendMapper friendMapper;
     private final UserBlacklistMapper blacklistMapper;
     private final PostMapper postMapper;
+    private final ChatMessageMapper chatMessageMapper;
     private final NotifyService notifyService;
 
     @Override
@@ -249,6 +253,15 @@ public class RelationServiceImpl implements RelationService {
         friendMapper.delete(new LambdaQueryWrapper<UserFriend>()
                 .and(w -> w.eq(UserFriend::getUserId, myUserId).eq(UserFriend::getFriendId, targetUserId)
                         .or().eq(UserFriend::getUserId, targetUserId).eq(UserFriend::getFriendId, myUserId)));
+
+        // 拉黑后会话隐藏：对方发来的未读私信一并置为已读，
+        // 避免“看不见的会话 + 永远未读”造成顶栏角标虚高(例如只剩1个可见会话却显示10)
+        chatMessageMapper.update(null, new LambdaUpdateWrapper<ChatMessage>()
+                .eq(ChatMessage::getToUserId, myUserId)
+                .eq(ChatMessage::getFromUserId, targetUserId)
+                .eq(ChatMessage::getIsRead, 0)
+                .set(ChatMessage::getIsRead, 1));
+
         log.info("[黑名单] {} 拉黑了 {}（双向阻断）", myUserId, targetUserId);
     }
 

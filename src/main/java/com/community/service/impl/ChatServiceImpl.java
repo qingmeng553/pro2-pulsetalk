@@ -175,10 +175,19 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public long totalUnread(long myUserId) {
-        Long count = chatMessageMapper.selectCount(new LambdaQueryWrapper<ChatMessage>()
+        // 与 threadList 口径保持一致：被拉黑(双向)的会话已在列表中隐藏，
+        // 其未读消息也不再计入顶栏角标，避免“看不见的未读”让角标虚高(如卡在10)
+        List<ChatMessage> unread = chatMessageMapper.selectList(new LambdaQueryWrapper<ChatMessage>()
                 .eq(ChatMessage::getToUserId, myUserId)
                 .eq(ChatMessage::getIsRead, 0));
-        return count == null ? 0L : count;
+        long total = 0;
+        for (ChatMessage m : unread) {
+            if (relationService.isBlocked(myUserId, m.getFromUserId())) {
+                continue;
+            }
+            total++;
+        }
+        return total;
     }
 
     // ==================== 私有辅助 ====================

@@ -2,7 +2,7 @@
 # pro2 点评贴吧社区 后端镜像
 # 约束：不在容器内执行 Maven 编译；先在本机执行
 #     mvn clean install -DskipTests
-# 生成 target/pro2-1.0.0.jar 后再构建本镜像（仅复制并运行 jar）
+# 生成 target/pro2-1.0.1.jar 后再构建本镜像（仅复制并运行 jar）
 # ============================================================
 FROM eclipse-temurin:17-jre-alpine
 
@@ -13,7 +13,7 @@ LABEL maintainer="pro2-community" \
 WORKDIR /app
 
 # 仅复制本机已打好的可执行 jar
-COPY target/pro2-1.0.0.jar app.jar
+COPY target/pro2-1.0.1.jar app.jar
 
 # 运行端口（与 application*.yml 中 server.port 保持一致）
 EXPOSE 8085

@@ -140,4 +140,20 @@ onMounted(loadAll)
   align-items: center;
   gap: 6px;
 }
+/* ---------- 移动端适配 ---------- */
+@media (max-width: 640px) {
+  .friends-page {
+    max-width: 100%;
+  }
+  .row-item {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 4px;
+  }
+  .row-ops {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+}
 </style>

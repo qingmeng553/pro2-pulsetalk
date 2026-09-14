@@ -28,21 +28,26 @@ DROP TABLE IF EXISTS sys_user;
 -- 1. 用户表 sys_user
 -- ============================================================================
 CREATE TABLE sys_user (
-    id          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
-    username    VARCHAR(50)  NOT NULL COMMENT '登录账号',
-    password    VARCHAR(128) NOT NULL COMMENT '密码(salt$sha256hex, 加密存储)',
-    nickname    VARCHAR(64)  DEFAULT NULL COMMENT '昵称',
-    avatar_url  VARCHAR(512) DEFAULT NULL COMMENT '头像URL(MinIO)',
-    role        VARCHAR(16)  NOT NULL DEFAULT 'USER' COMMENT '角色: USER普通 / ADMIN管理员',
-    create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    id                BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+    username          VARCHAR(50)  NOT NULL COMMENT '登录账号',
+    password          VARCHAR(128) NOT NULL COMMENT '密码(salt$sha256hex, 加密存储)',
+    nickname          VARCHAR(64)  DEFAULT NULL COMMENT '昵称',
+    avatar_url        VARCHAR(512) DEFAULT NULL COMMENT '头像URL(MinIO)',
+    security_question VARCHAR(200) DEFAULT NULL COMMENT '密保问题(用于忘记密码)',
+    security_answer   VARCHAR(128) DEFAULT NULL COMMENT '密保答案(加密存储)',
+    role              VARCHAR(16)  NOT NULL DEFAULT 'USER' COMMENT '角色: USER普通 / ADMIN管理员',
+    status            TINYINT      NOT NULL DEFAULT 0 COMMENT '0正常 1封禁(封禁后不可发帖/评论)',
+    is_deleted        TINYINT      NOT NULL DEFAULT 0 COMMENT '0未删 1已删(管理员删除用户)',
+    create_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (id),
     UNIQUE KEY uk_username (username)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户表';
 
 -- 预置账号：admin / 123456 (ADMIN)，test / 123456 (USER)
-INSERT INTO sys_user (id, username, password, nickname, role, create_time) VALUES
-(1, 'admin', 'a3f9c1e7d5b2408e6f0a1234567890ab$6c7035cd6cb2e4f6c6cae3496e531b47f713572a1925c728e9d92d260875cbd5', '管理员', 'ADMIN', NOW()),
-(2, 'test',  '7c2d8e4f1a9b3c5d7e6f8a0b1c2d3e4f$570e7f7d3e89d30bf654b7af23f7a6e106ed22b725e8a590b7e5a277ede21a2a', '测试用户', 'USER', NOW());
+INSERT INTO sys_user (id, username, password, nickname, role, status, is_deleted, create_time) VALUES
+(1, 'admin', 'a3f9c1e7d5b2408e6f0a1234567890ab$6c7035cd6cb2e4f6c6cae3496e531b47f713572a1925c728e9d92d260875cbd5', '管理员', 'ADMIN', 0, 0, NOW()),
+(2, 'test',  '7c2d8e4f1a9b3c5d7e6f8a0b1c2d3e4f$570e7f7d3e89d30bf654b7af23f7a6e106ed22b725e8a590b7e5a277ede21a2a', '测试用户', 'USER', 0, 0, NOW());
 
 -- ============================================================================
 -- 2. 帖子分类表 post_category

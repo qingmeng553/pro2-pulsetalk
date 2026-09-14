@@ -3,7 +3,7 @@
 #   mysql8  redis:7-alpine  minio  后端应用 pro2
 #
 # 使用前提：本机已执行 mvn clean install -DskipTests 生成
-#   target/pro2-1.0.0.jar（容器内不做 Maven 编译）
+#   target/pro2-1.0.1.jar（容器内不做 Maven 编译）
 #
 # 启动：docker compose up -d --build
 # 说明：
@@ -85,7 +85,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: pro2-community:1.0.0
+    image: pro2-community:1.0.1
     container_name: pro2-app
     restart: always
     environment:

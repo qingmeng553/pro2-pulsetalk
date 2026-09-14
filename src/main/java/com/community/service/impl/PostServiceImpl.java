@@ -259,6 +259,8 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Post create(long userId, PostDTO dto) {
+        // v3 封禁校验：被封禁用户不可发帖
+        requireNotBanned(userId);
         // 发帖接口限流(Redis 计数器)
         rateLimitService.checkCreatePost(userId);
         requireCategory(dto.getCategoryId());
@@ -416,6 +418,14 @@ public class PostServiceImpl implements PostService {
     private boolean isAdmin(long userId) {
         SysUser user = userMapper.selectById(userId);
         return user != null && UserRole.ADMIN == user.getRole();
+    }
+
+    /** v3 封禁校验：账号被封禁时禁止发帖/评论等创作行为 */
+    private void requireNotBanned(long userId) {
+        SysUser user = userMapper.selectById(userId);
+        if (user != null && user.getStatus() != null && user.getStatus() == SysUser.STATUS_BANNED) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "账号已被封禁，暂时无法发帖");
+        }
     }
 
     /** 该帖是否为当前置顶规则帖 */

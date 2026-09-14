@@ -3,6 +3,16 @@
     <div class="card">
       <div class="section-title">{{ isEdit ? '编辑帖子' : '发布新帖' }}</div>
 
+      <!-- v3：封禁用户不可发帖 -->
+      <el-alert
+        v-if="authState.user?.banned"
+        title="当前账号已被封禁，无法发布或编辑帖子（可正常浏览与互动）"
+        type="error"
+        show-icon
+        :closable="false"
+        class="banned-tip"
+      />
+
       <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
         <el-form-item label="标题" prop="title">
           <el-input v-model="form.title" maxlength="100" show-word-limit placeholder="一句话讲清主题，支持 emoji ✨" />
@@ -48,7 +58,7 @@
 
         <div class="actions">
           <el-button @click="$router.back()">取消</el-button>
-          <el-button type="primary" :loading="submitting" @click="submit">
+          <el-button type="primary" :loading="submitting" :disabled="authState.user?.banned" @click="submit">
             {{ isEdit ? '保存修改' : '发布帖子' }}
           </el-button>
         </div>
@@ -64,6 +74,7 @@ import { ElMessage } from 'element-plus'
 import MarkdownViewer from '../components/MarkdownViewer.vue'
 import EmojiPicker from '../components/EmojiPicker.vue'
 import ImageUploader from '../components/ImageUploader.vue'
+import { authState } from '../store/user'
 import { apiCategoryList, apiCreatePost, apiUpdatePost, apiPostDetail } from '../api/post'
 
 const route = useRoute()
@@ -203,5 +214,33 @@ onMounted(() => {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 6px;
+}
+/* ---------- 移动端适配 ---------- */
+@media (max-width: 640px) {
+  .card {
+    padding: 16px 14px;
+    border-radius: 14px;
+  }
+  .editor-head {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .markdown-tip {
+    display: none;
+  }
+  .actions {
+    gap: 8px;
+  }
+  .actions .el-button {
+    flex: 1;
+  }
+  .preview-box {
+    padding: 12px 12px;
+  }
+}
+/* 封禁提示条 */
+.banned-tip {
+  margin-bottom: 14px;
+  border-radius: 10px;
 }
 </style>

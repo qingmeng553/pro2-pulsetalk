@@ -95,6 +95,13 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public void create(long userId, long postId, CommentDTO dto) {
+        // v3 封禁校验：被封禁用户不可评论
+        SysUser commentUser = userMapper.selectById(userId);
+        if (commentUser != null && commentUser.getStatus() != null
+                && commentUser.getStatus() == SysUser.STATUS_BANNED) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "账号已被封禁，暂时无法评论");
+        }
+
         // 评论接口限流(Redis 计数器)
         rateLimitService.checkComment(userId);
 

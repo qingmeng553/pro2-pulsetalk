@@ -214,4 +214,36 @@ onMounted(() => {
   color: var(--text-sub);
   font-size: 13px;
 }
+
+/* ---------- 移动端适配 ---------- */
+@media (max-width: 640px) {
+  .cat-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cat-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .cat-chip {
+    flex: none;
+    padding: 5px 13px;
+    font-size: 13px;
+  }
+  .post-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .pin-banner {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .pin-title {
+    font-size: 14px;
+  }
+  .pin-desc {
+    font-size: 11px;
+  }
+}
 </style>

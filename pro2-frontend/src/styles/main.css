@@ -149,3 +149,51 @@ a {
   --el-button-active-bg-color: var(--brand-dark);
   --el-button-active-border-color: var(--brand-dark);
 }
+
+/* ============================================================
+   移动端适配(手机浏览器)
+   - 收紧容器内边距、字号与点击区域
+   - 表格/长内容允许横向滚动，避免页面被撑破
+   - 弹窗、分页、markdown 正文自适应
+   ============================================================ */
+@media (max-width: 768px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  .page-container {
+    padding: 12px 12px 48px;
+  }
+  .section-title {
+    font-size: 16px;
+    margin: 2px 0 12px;
+  }
+  .empty-tip {
+    padding: 32px 0;
+  }
+  /* 弹窗在手机上留出边距 */
+  .el-dialog {
+    width: 92% !important;
+    margin-top: 8vh !important;
+  }
+  .el-pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .el-table {
+    font-size: 13px;
+  }
+  .markdown-body {
+    font-size: 14.5px;
+  }
+  .markdown-body pre {
+    font-size: 12.5px;
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .page-container {
+    padding: 10px 10px 44px;
+  }
+}
+

@@ -84,6 +84,14 @@
         <div class="section-title">全部评论（{{ commentTotal }}）</div>
 
         <!-- 评论输入 -->
+        <el-alert
+          v-if="isBanned"
+          title="当前账号已被封禁，暂时无法发表评论"
+          type="error"
+          show-icon
+          :closable="false"
+          class="banned-tip"
+        />
         <div class="comment-input" :class="{ 'need-login': !isLoggedIn }" @click="focusComment">
           <el-avatar :size="30" :src="authState.user?.avatarUrl" v-if="isLoggedIn">
             {{ (authState.user?.nickname || 'U').slice(0, 1) }}
@@ -96,10 +104,11 @@
             resize="none"
             maxlength="2000"
             show-word-limit
-            :placeholder="isLoggedIn ? '友善评论，理性发言 ~' : '登录后即可发表评论'"
+            :disabled="isBanned"
+            :placeholder="commentPlaceholder"
             @keydown.ctrl.enter="submitComment"
           />
-          <el-button type="primary" :loading="commenting" @click="submitComment">
+          <el-button type="primary" :loading="commenting" :disabled="isBanned" @click="submitComment">
             发表评论
           </el-button>
         </div>
@@ -188,6 +197,11 @@ const commenting = ref(false)
 const commentInputRef = ref()
 
 const isAdmin = computed(() => authState.user?.role === 'ADMIN')
+const isBanned = computed(() => !!authState.user?.banned)
+const commentPlaceholder = computed(() => {
+  if (isBanned.value) return '账号已被封禁，暂时无法评论'
+  return isLoggedIn.value ? '友善评论，理性发言 ~' : '登录后即可发表评论'
+})
 const isOwner = computed(() => detail.value?.author?.userId && String(detail.value.author.userId) === String(authState.user?.id))
 
 async function loadDetail() {
@@ -232,6 +246,10 @@ function focusComment() {
 async function submitComment() {
   if (!isLoggedIn.value) {
     openLoginDialog()
+    return
+  }
+  if (isBanned.value) {
+    ElMessage.warning('账号已被封禁，暂时无法评论')
     return
   }
   const content = commentText.value.trim()
@@ -503,5 +521,66 @@ onMounted(() => {
 .pager {
   margin-top: 18px;
   justify-content: center;
+}
+/* ---------- 移动端适配 ---------- */
+@media (max-width: 640px) {
+  .head {
+    padding: 16px 14px;
+    border-radius: 14px;
+  }
+  .title {
+    font-size: 19px;
+    margin: 10px 0 12px;
+  }
+  .author-line {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .head-ops {
+    margin-left: 0;
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+  .gallery {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .gallery-img {
+    height: 110px;
+  }
+  .content-card {
+    padding: 16px 14px;
+    border-radius: 14px;
+  }
+  .action-bar {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+  .action-btn {
+    padding: 8px 16px;
+    font-size: 13.5px;
+  }
+  .action-static {
+    margin-left: 0;
+    width: 100%;
+  }
+  .comment-section {
+    padding: 16px 14px 20px;
+    border-radius: 14px;
+  }
+  .comment-input {
+    flex-wrap: wrap;
+  }
+  .comment-input .el-button {
+    width: 100%;
+    margin-top: 8px;
+  }
+}
+/* 封禁提示条 */
+.banned-tip {
+  margin-bottom: 12px;
+  border-radius: 10px;
 }
 </style>

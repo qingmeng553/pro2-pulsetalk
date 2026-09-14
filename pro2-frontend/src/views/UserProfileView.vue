@@ -223,4 +223,31 @@ onMounted(loadProfile)
   text-align: center;
   margin-top: 20px;
 }
+/* ---------- 移动端适配 ---------- */
+@media (max-width: 640px) {
+  .profile-user {
+    max-width: 100%;
+  }
+  .u-card {
+    padding: 20px 14px;
+    border-radius: 14px;
+  }
+  .big-avatar {
+    width: 68px;
+    height: 68px;
+  }
+  .u-name {
+    font-size: 19px;
+  }
+  .u-actions {
+    gap: 8px;
+  }
+  .u-actions .el-button {
+    margin-left: 0;
+  }
+  .post-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
 </style>

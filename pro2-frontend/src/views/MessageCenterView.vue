@@ -63,6 +63,7 @@
               </div>
               <div class="n-time">{{ fromNow(n.createTime) }}</div>
             </div>
+            <span v-if="!n.read" class="n-dot" title="未读" />
           </div>
           <el-pagination
             v-if="notifyTotal > 20"
@@ -78,9 +79,13 @@
       </el-tab-pane>
 
       <!-- ============ 私信：会话列表 ============ -->
-      <el-tab-pane label="私信" name="chat">        <div class="chat-toolbar">
+      <el-tab-pane label="私信" name="chat">
+        <div class="chat-toolbar">
           <span class="tip">私信会话（非好友双方仅可各发 1 条打招呼）</span>
-          <el-button size="small" round @click="$router.push('/friends')">好友管理</el-button>
+          <div class="toolbar-right">
+            <el-button v-if="anyChatUnread" size="small" :icon="Check" @click="readAllChats">全部已读</el-button>
+            <el-button size="small" round @click="$router.push('/friends')">好友管理</el-button>
+          </div>
         </div>
         <div v-if="threads.length" class="t-list">
           <div
@@ -97,7 +102,7 @@
               </div>
               <div class="t-last">{{ t.lastMessage }}</div>
             </div>
-            <el-badge v-if="t.unread > 0" :value="t.unread" :max="99" />
+            <span v-if="(t.unread || 0) > 0" class="t-dot" title="未读" />
           </div>
         </div>
         <div v-else class="empty-tip">
@@ -134,7 +139,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Check, Promotion, Refresh } from '@element-plus/icons-vue'
 import UserChip from '../components/UserChip.vue'
 import { apiNotifyList, apiNotifyUnread, apiNotifyRead, apiNotifyBroadcast } from '../api/notify'
-import { apiChatThreads, apiChatUnread } from '../api/chat'
+import { apiChatThreads, apiChatUnread, apiChatRead } from '../api/chat'
 import { apiFriendPendingList, apiFriendAccept, apiFriendReject } from '../api/relation'
 import { fromNow } from '../utils/format'
 import { badgeState, setBadges } from '../store/badge'
@@ -207,6 +212,27 @@ async function loadThreads() {
   threads.value = await apiChatThreads()
   const c = await apiChatUnread()
   setBadges(badgeState.notify || 0, c?.count || 0)
+}
+
+/** 是否有任意私信会话未读 */
+const anyChatUnread = computed(() => (threads.value || []).some((t) => (t.unread || 0) > 0))
+
+/** 一键清空全部私信未读(逐会话标记已读后刷新) */
+const chatReading = ref(false)
+async function readAllChats() {
+  if (chatReading.value) return
+  chatReading.value = true
+  try {
+    for (const t of threads.value) {
+      if ((t.unread || 0) > 0) {
+        await apiChatRead(t.user?.userId)
+      }
+    }
+    ElMessage.success('私信已全部读啦')
+    await loadThreads()
+  } finally {
+    chatReading.value = false
+  }
 }
 
 function reloadAll() {
@@ -320,6 +346,16 @@ onMounted(() => {
   flex: 1;
   min-width: 0;
 }
+/* 通知未读小红点(不显示数字) */
+.n-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f56c6c;
+  flex: none;
+  align-self: center;
+  margin-left: 6px;
+}
 .n-text {
   font-size: 14px;
   line-height: 1.6;
@@ -365,6 +401,11 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 6px;
 }
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .tip {
   font-size: 12px;
   color: var(--text-sub);
@@ -381,6 +422,14 @@ onMounted(() => {
 }
 .t-item:hover {
   background: #f6f8ff;
+}
+/* 未读红点(不显示数字) */
+.t-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f56c6c;
+  flex: none;
 }
 .t-main {
   flex: 1;
@@ -418,5 +467,35 @@ onMounted(() => {
   font-size: 13px;
   color: var(--text-sub);
   margin: 0 0 10px;
+}
+/* ---------- 移动端适配 ---------- */
+@media (max-width: 640px) {
+  .msg-page {
+    max-width: 100%;
+  }
+  .n-item {
+    padding: 11px 8px;
+    gap: 8px;
+  }
+  .n-preview {
+    font-size: 12.5px;
+  }
+  .ops {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+    margin-left: 0;
+  }
+  .t-item {
+    padding: 11px 8px;
+    gap: 8px;
+  }
+  .t-last {
+    max-width: 62vw;
+  }
+  .chat-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 }
 </style>

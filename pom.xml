@@ -18,7 +18,7 @@
 
     <groupId>com.community</groupId>
     <artifactId>pro2</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <name>pro2-community</name>
     <description>Redis 综合实战项目：点评贴吧社区（单模块后端）</description>
 
@@ -106,7 +106,7 @@
     <build>
         <finalName>pro2-${project.version}</finalName>
         <plugins>
-            <!-- SpringBoot 打包插件：生成可执行 fat jar(target/pro2-1.0.0.jar)供 Dockerfile 复制 -->
+            <!-- SpringBoot 打包插件：生成可执行 fat jar(target/pro2-1.0.1.jar)供 Dockerfile 复制 -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

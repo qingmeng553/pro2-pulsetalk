@@ -11,12 +11,15 @@
       <nav class="nav">
         <router-link to="/" class="nav-item">首页</router-link>
         <router-link to="/rank" class="nav-item">热度榜</router-link>
-        <!-- v2：消息中心(通知+私信)，未读数>0 才显示红标 -->
-        <router-link to="/msg" class="nav-item" v-if="isLoggedIn">
-          <span v-if="totalBadge() > 0">
-            <el-badge :value="totalBadge()" :max="99" class="msg-badge">消息</el-badge>
-          </span>
-          <span v-else>消息</span>
+        <!-- 消息中心(通知+私信)：有未读只显示红点，不显示数字 -->
+        <router-link
+          to="/msg"
+          class="nav-item msg-item"
+          v-if="isLoggedIn"
+          :title="`通知 ${badgeState.notify || 0} 条 · 私信 ${badgeState.chat || 0} 条（悬停查看明细）`"
+        >
+          消息
+          <span v-if="totalBadge() > 0" class="nav-dot" />
         </router-link>
         <router-link to="/post/create" class="nav-item nav-post" v-if="isLoggedIn">发帖</router-link>
       </nav>
@@ -40,6 +43,10 @@
                 </el-dropdown-item>
                 <el-dropdown-item command="msg">
                   <el-icon><Bell /></el-icon> 消息中心
+                </el-dropdown-item>
+                <!-- v3：仅管理员可见的用户管理入口 -->
+                <el-dropdown-item v-if="authState.user?.role === 'ADMIN'" command="adminUsers">
+                  <el-icon><Setting /></el-icon> 用户管理
                 </el-dropdown-item>
                 <el-dropdown-item divided command="logout">
                   <el-icon><SwitchButton /></el-icon> 退出登录
@@ -86,6 +93,8 @@ function onCommand(cmd) {
     router.push('/profile')
   } else if (cmd === 'msg') {
     router.push('/msg')
+  } else if (cmd === 'adminUsers') {
+    router.push('/admin/users')
   } else if (cmd === 'logout') {
     ElMessageBox.confirm('确定要退出登录吗？', '提示', { type: 'warning' })
       .then(async () => {
@@ -176,8 +185,19 @@ onBeforeUnmount(() => {
   color: var(--brand);
   border: 1px solid var(--brand);
 }
-.msg-badge {
-  line-height: 1;
+/* 未读小红点(有未读才显示) */
+.msg-item {
+  position: relative;
+}
+.nav-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f56c6c;
+  margin-left: 5px;
+  vertical-align: 2px;
+  box-shadow: 0 0 0 2px #fff;
 }
 .user-area {
   display: flex;
@@ -194,5 +214,42 @@ onBeforeUnmount(() => {
 .user-chip .nick {
   font-weight: 600;
   font-size: 14px;
+}
+/* ---------- 移动端适配 ---------- */
+@media (max-width: 640px) {
+  .navbar-inner {
+    gap: 10px;
+    padding: 0 10px;
+    height: 54px;
+  }
+  .brand {
+    font-size: 16px;
+  }
+  .brand-logo {
+    width: 28px;
+    height: 28px;
+    font-size: 15px;
+  }
+  .nav {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  .nav::-webkit-scrollbar {
+    display: none;
+  }
+  .nav-item {
+    padding: 6px 10px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .user-chip .nick {
+    display: none;
+  }
+}
+@media (max-width: 400px) {
+  .brand-text {
+    display: none;
+  }
 }
 </style>

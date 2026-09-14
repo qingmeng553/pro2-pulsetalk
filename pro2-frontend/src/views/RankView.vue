@@ -240,4 +240,23 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
 }
+/* ---------- 移动端补充：小屏图表与榜单 ---------- */
+@media (max-width: 640px) {
+  .chart {
+    height: 320px;
+  }
+  .rank-list {
+    max-height: none;
+  }
+  .rank-row {
+    padding: 9px 10px;
+  }
+  .rank-meta {
+    flex-wrap: wrap;
+    gap: 6px 10px;
+  }
+  .rank-score {
+    font-size: 15px;
+  }
+}
 </style>

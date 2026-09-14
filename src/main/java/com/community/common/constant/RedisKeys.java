@@ -87,4 +87,14 @@ public final class RedisKeys {
     public static String commentLimitKey(long userId) {
         return LIMIT_COMMENT + userId;
     }
+
+    /** 忘记密码-查询密保问题限流键(按用户名，防账号枚举) */
+    public static String forgotLimitKey(String username) {
+        return "community:limit:forgot:query:" + username;
+    }
+
+    /** 忘记密码-校验密保答案限流键(按用户名，防答案暴力破解) */
+    public static String forgotResetLimitKey(String username) {
+        return "community:limit:forgot:reset:" + username;
+    }
 }
