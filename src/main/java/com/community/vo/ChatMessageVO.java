@@ -5,9 +5,7 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
-/**
- * 私聊消息 VO
- */
+/** 私聊消息 VO。 */
 @Data
 public class ChatMessageVO {
 

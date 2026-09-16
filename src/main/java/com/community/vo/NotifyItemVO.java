@@ -5,9 +5,7 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
-/**
- * 站内消息通知 VO(谁赞了我/评论了我/收藏了我/加我好友)
- */
+/** 站内消息通知 VO(谁赞了我/评论了我/收藏了我/加我好友)。 */
 @Data
 public class NotifyItemVO {
 

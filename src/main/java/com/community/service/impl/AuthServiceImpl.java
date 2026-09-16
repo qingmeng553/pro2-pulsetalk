@@ -30,11 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Locale;
 
-/**
- * 用户认证服务实现
- *
- * <p>v3：新增改名、修改密码、密保问题(设置/查询/找回密码)，找回流程带 Redis 限流防爆破。
- */
+/** 用户认证服务实现。 */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -116,7 +112,7 @@ public class AuthServiceImpl implements AuthService {
         return url;
     }
 
-    /** 实体 → 当前用户 VO(注意不回传 password) */
+    // 实体转 VO，不返回密码
     public static CurrentUserVO toCurrentUserVO(SysUser user) {
         CurrentUserVO vo = new CurrentUserVO();
         vo.setId(user.getId());
@@ -129,9 +125,7 @@ public class AuthServiceImpl implements AuthService {
         vo.setBanned(user.getStatus() != null && user.getStatus() == SysUser.STATUS_BANNED);
         return vo;
     }
-
-    // ==================== v3：账号自助(改名/改密/密保) ====================
-
+    // ---- v3：账号自助(改名/改密/密保) ----
     @Override
     public CurrentUserVO updateProfile(UpdateProfileDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();

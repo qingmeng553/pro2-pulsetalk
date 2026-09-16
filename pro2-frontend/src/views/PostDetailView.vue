@@ -1,5 +1,7 @@
 <template>
   <div class="page-container detail-page">
+    <!-- 阅读进度 -->
+    <div class="read-bar" :style="{ width: readProgress + '%' }" />
     <el-skeleton v-if="loading" :rows="8" animated />
 
     <template v-else-if="detail">
@@ -166,7 +168,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Delete, EditPen } from '@element-plus/icons-vue'
@@ -185,6 +187,13 @@ const postId = computed(() => route.params.id)
 
 const detail = ref(null)
 const loading = ref(true)
+
+// 阅读进度
+const readProgress = ref(0)
+function onScroll() {
+  const total = document.documentElement.scrollHeight - window.innerHeight
+  readProgress.value = total > 0 ? Math.min(100, Math.max(0, (window.scrollY / total) * 100)) : 0
+}
 
 // 评论
 const comments = ref([])
@@ -346,10 +355,27 @@ watch(postId, () => {
 onMounted(() => {
   loadDetail()
   loadComments(1)
+  window.addEventListener('scroll', onScroll, { passive: true })
+  onScroll()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll)
 })
 </script>
 
 <style scoped>
+/* 阅读进度条 */
+.read-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--brand-gradient);
+  z-index: 40;
+  border-radius: 0 3px 3px 0;
+  transition: width 0.12s linear;
+}
 .detail-page {
   max-width: 820px;
 }

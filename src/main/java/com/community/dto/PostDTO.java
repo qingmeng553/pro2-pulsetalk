@@ -7,9 +7,7 @@ import lombok.Data;
 
 import java.util.List;
 
-/**
- * 新建/编辑帖子请求（Markdown 正文 + emoji + 多张配图）
- */
+/** 新建/编辑帖子请求（Markdown 正文 + emoji + 多张配图）。 */
 @Data
 public class PostDTO {
 

@@ -3,9 +3,7 @@ package com.community.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
-/**
- * 用户登录请求
- */
+/** 用户登录请求。 */
 @Data
 public class LoginDTO {
 

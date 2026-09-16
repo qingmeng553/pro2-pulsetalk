@@ -4,9 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-/**
- * 修改昵称(改名)请求
- */
+/** 修改昵称(改名)请求。 */
 @Data
 public class UpdateProfileDTO {
 

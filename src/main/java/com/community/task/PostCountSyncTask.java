@@ -12,17 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
-/**
- * Redis 计数 → MySQL 批量同步定时任务
- *
- * <p>策略：点赞/收藏/浏览量全程只操作 Redis(不实时写库)，本任务每 5 分钟执行一次：
- * <ol>
- *   <li>读取脏标记集合 {@code community:post:sync:dirty} 中待同步的帖子ID(谁被互动过同步谁)</li>
- *   <li>以 Redis 权威数据为准：点赞数=Set size、收藏数=Set size、浏览量=INCR 累计值</li>
- *   <li>批量 UPDATE post 表对应计数(幂等：直接覆盖为 Redis 绝对值)</li>
- *   <li>成功后移除脏标记，未成功(如帖子刚好被删)下轮重试或自动清理</li>
- * </ol>
- */
+/** Redis 计数 → MySQL 批量同步定时任务。 */
 @Slf4j
 @Component
 @RequiredArgsConstructor

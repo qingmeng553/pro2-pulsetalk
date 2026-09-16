@@ -33,9 +33,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * 好友 + 黑名单 + 用户主页服务实现
- */
+/** 好友 + 黑名单 + 用户主页服务实现。 */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -113,9 +111,7 @@ public class RelationServiceImpl implements RelationService {
         }
         return REL_NONE;
     }
-
-    // ==================== 好友 ====================
-
+    // ---- 好友 ----
     @Override
     public void requestFriend(long fromUserId, long toUserId) {
         if (fromUserId == toUserId) {
@@ -230,9 +226,7 @@ public class RelationServiceImpl implements RelationService {
                 .stream().map(UserFriend::getUserId).collect(Collectors.toCollection(LinkedHashSet::new));
         return toAuthorList(ids);
     }
-
-    // ==================== 黑名单 ====================
-
+    // ---- 黑名单 ----
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void addBlacklist(long myUserId, long targetUserId) {
@@ -280,9 +274,7 @@ public class RelationServiceImpl implements RelationService {
                 .stream().map(UserBlacklist::getBlackUserId).collect(Collectors.toCollection(LinkedHashSet::new));
         return toAuthorList(ids);
     }
-
-    // ==================== 关系判断(供聊天等复用) ====================
-
+    // ---- 关系判断(供聊天等复用) ----
     @Override
     public boolean isFriend(long userIdA, long userIdB) {
         Long count = friendMapper.selectCount(new LambdaQueryWrapper<UserFriend>()
@@ -299,9 +291,7 @@ public class RelationServiceImpl implements RelationService {
                         .or().eq(UserBlacklist::getUserId, userIdB).eq(UserBlacklist::getBlackUserId, userIdA)));
         return count != null && count > 0;
     }
-
-    // ==================== 私有辅助 ====================
-
+    // ---- 私有辅助 ----
     private void requireUser(long userId) {
         if (userMapper.selectById(userId) == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "用户不存在");

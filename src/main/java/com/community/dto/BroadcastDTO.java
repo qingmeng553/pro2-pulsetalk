@@ -4,9 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-/**
- * 管理员向全体用户发送官方消息请求
- */
+/** 管理员向全体用户发送官方消息请求。 */
 @Data
 public class BroadcastDTO {
 

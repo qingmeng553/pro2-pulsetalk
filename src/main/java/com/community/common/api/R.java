@@ -4,11 +4,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 
-/**
- * 统一响应体
- *
- * @param <T> 业务数据类型
- */
+/** 统一响应体。 */
 @Data
 public class R<T> implements Serializable {
 

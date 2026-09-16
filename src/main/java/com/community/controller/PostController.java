@@ -30,23 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-/**
- * 帖子模块接口
- *
- * <pre>
- * GET    /post/category/list   获取全部帖子分类(游客可访问)
- * GET    /post/list            帖子分页列表(游客可访问，过滤 is_deleted=1，支持分类筛选)
- * GET    /post/{id}            帖子详情(游客可访问；浏览量 Redis 自增；命中热点缓存)
- * POST   /post                 新建帖子(需登录；限流校验；markdown+emoji+多张配图)
- * PUT    /post/{id}            修改自己帖子(需登录；仅作者可改；更新DB后删除Redis缓存)
- * DELETE /post/{id}            用户删除自己帖子(需登录；仅作者，软删除，清理缓存)
- * DELETE /post/admin/{id}      管理员软删除任意帖子(需 admin 角色)
- * POST   /post/{id}/like       点赞/取消点赞(需登录，只操作 Redis)
- * POST   /post/{id}/collect    收藏/取消收藏(需登录，只操作 Redis)
- * GET    /post/hot/rank        热度榜单(游客可访问，ZSet)
- * POST   /post/image           上传帖子配图(需登录，返回可访问 URL)【资源型接口，非CRUD】
- * </pre>
- */
+/** 帖子模块接口。 */
 @RestController
 @RequestMapping("/post")
 @RequiredArgsConstructor
@@ -55,9 +39,7 @@ public class PostController {
     private final PostService postService;
     private final PostInteractionService interactionService;
     private final RankService rankService;
-
-    // ==================== 分类 & 列表(游客可读) ====================
-
+    // ---- 分类 & 列表(游客可读) ----
     /** 获取全部帖子分类 */
     @GetMapping("/category/list")
     public R<List<PostCategory>> categoryList() {
@@ -90,9 +72,7 @@ public class PostController {
     public R<List<RankItemVO>> hotRank(@RequestParam(defaultValue = "10") int topN) {
         return R.ok(rankService.top(Math.min(Math.max(topN, 1), 50)));
     }
-
-    // ==================== 帖子写操作(需登录) ====================
-
+    // ---- 帖子写操作(需登录) ----
     /** 新建帖子(需登录；发帖限流) */
     @SaCheckLogin
     @PostMapping
@@ -138,9 +118,7 @@ public class PostController {
         postService.unpin(StpUtil.getLoginIdAsLong());
         return R.ok();
     }
-
-    // ==================== 点赞 / 收藏(只操作 Redis) ====================
-
+    // ---- 点赞 / 收藏(只操作 Redis) ----
     /** 点赞/取消点赞(需登录) */
     @SaCheckLogin
     @PostMapping("/{id}/like")

@@ -11,12 +11,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * 帖子实体 post
- *
- * <p>计数说明：view/like/collect 三个计数由 Redis 记录，定时任务每 5 分钟批量同步回本表，
- * 点赞/收藏等写操作不实时写数据库。
- */
+/** 帖子实体 post。 */
 @Data
 @TableName("post")
 public class Post implements Serializable {

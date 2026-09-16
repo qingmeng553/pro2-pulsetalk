@@ -21,16 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * 站内消息(消息板块)接口 —— 看谁赞了我/评论了我/收藏了我/加我好友
- *
- * <pre>
- * GET  /notify/list          通知分页(需登录)
- * GET  /notify/unread-count  未读数(顶栏角标)
- * POST /notify/read          标记已读(ids 为空=全部)
- * POST /notify/broadcast     管理员向全体用户发送官方消息(SYSTEM，admin 角色)
- * </pre>
- */
+/** 站内消息(消息板块)接口 —— 看谁赞了我/评论了我/收藏了我/加我好友。 */
 @RestController
 @RequestMapping("/notify")
 @RequiredArgsConstructor

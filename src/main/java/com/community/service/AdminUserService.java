@@ -3,12 +3,7 @@ package com.community.service;
 import com.community.vo.PageVO;
 import com.community.vo.UserAdminVO;
 
-/**
- * 管理端 - 用户管理服务(仅 ADMIN 可见，鉴权在 Controller 的 @SaCheckRole("admin"))
- *
- * <p>能力：用户表分页查询、封禁、解封、删除(逻辑删除)。
- * 约束：不允许操作管理员账号本人/其它管理员，避免误封管理员。
- */
+/** 管理端 - 用户管理服务(仅 ADMIN 可见，鉴权在 Controller 的 @SaCheckRole("admin…。 */
 public interface AdminUserService {
 
     /**

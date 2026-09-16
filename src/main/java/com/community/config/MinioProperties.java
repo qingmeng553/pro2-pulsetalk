@@ -3,12 +3,7 @@ package com.community.config;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-/**
- * MinIO 配置项(minio.*)
- *
- * <p>endpoint(内部连接地址) 与 public-endpoint(返回给浏览器的地址) 分离：
- * 容器环境内部用 http://minio:9000，而浏览器访问宿主机映射端口 localhost:9000。
- */
+/** MinIO 配置项(minio.*)。 */
 @Data
 @ConfigurationProperties(prefix = "minio")
 public class MinioProperties {

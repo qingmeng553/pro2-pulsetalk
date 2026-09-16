@@ -3,11 +3,7 @@ package com.community.vo;
 import com.community.entity.UserRole;
 import lombok.Data;
 
-/**
- * 作者(发帖人/评论人)摘要信息
- *
- * <p>role 用于前端在昵称旁渲染 ADMIN 盾牌管理员徽章。
- */
+/** 作者(发帖人/评论人)摘要信息。 */
 @Data
 public class AuthorVO {
 

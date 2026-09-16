@@ -10,16 +10,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * 私聊消息实体 chat_message
- *
- * <p>规则：
- * <ul>
- *   <li>非好友双方各自最多发送 1 条打招呼消息，成为好友后畅聊</li>
- *   <li>拉黑双方阻断互动(发送/会话均不可)</li>
- *   <li>聊天记录保留 7 天，由定时任务 ChatHistoryCleanTask 每天清理过期数据</li>
- * </ul>
- */
+/** 私聊消息实体 chat_message。 */
 @Data
 @TableName("chat_message")
 public class ChatMessage implements Serializable {

@@ -6,9 +6,7 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
-/**
- * 管理端用户表条目 VO(管理员可见的用户管理模块)
- */
+/** 管理端用户表条目 VO(管理员可见的用户管理模块)。 */
 @Data
 public class UserAdminVO {
 
@@ -30,7 +28,7 @@ public class UserAdminVO {
     /** 状态 0正常 / 1封禁 */
     private Integer status;
 
-    /** 是否封禁(便于前端绑定) */
+    /** 是否封禁 */
     private Boolean banned;
 
     /** 注册时间 */

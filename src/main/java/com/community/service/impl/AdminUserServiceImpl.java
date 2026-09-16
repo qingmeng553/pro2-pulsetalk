@@ -15,9 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-/**
- * 管理端 - 用户管理服务实现
- */
+/** 管理端 - 用户管理服务实现。 */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -33,7 +31,7 @@ public class AdminUserServiceImpl implements AdminUserService {
             qw.and(w -> w.like(SysUser::getUsername, kw).or().like(SysUser::getNickname, kw));
         }
         qw.orderByDesc(SysUser::getId);
-        // 注意：不回传 password / securityAnswer
+        // 不回传 password / securityAnswer
         qw.select(SysUser::getId, SysUser::getUsername, SysUser::getNickname, SysUser::getAvatarUrl,
                 SysUser::getRole, SysUser::getStatus, SysUser::getCreateTime);
 
@@ -60,7 +58,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     @Override
     public void delete(long adminId, long targetId) {
         SysUser target = requireOperable(adminId, targetId);
-        // 逻辑删除(MyBatis-Plus @TableLogic)；同时改名释放用户名占用，便于同名重新注册
+        // 逻辑删除，并释放原用户名
         String freed = target.getUsername() + "_deleted_" + target.getId();
         target.setUsername(freed.length() > 50 ? freed.substring(0, 50) : freed);
         userMapper.updateById(target);

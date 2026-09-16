@@ -31,9 +31,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * 私聊服务实现
- */
+/** 私聊服务实现。 */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -189,9 +187,7 @@ public class ChatServiceImpl implements ChatService {
         }
         return total;
     }
-
-    // ==================== 私有辅助 ====================
-
+    // ---- 私有辅助 ----
     private Map<Long, SysUser> batchUsers(java.util.Collection<Long> ids) {
         if (CollectionUtils.isEmpty(ids)) {
             return Map.of();

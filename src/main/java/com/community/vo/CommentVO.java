@@ -5,9 +5,7 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
-/**
- * 评论 VO
- */
+/** 评论 VO。 */
 @Data
 public class CommentVO {
 
@@ -26,7 +24,7 @@ public class CommentVO {
     /** 楼层号(从1递增，按分页动态计算) */
     private Integer floor;
 
-    /** 评论人信息(含角色，便于渲染管理员徽章) */
+    /** 评论人信息 */
     private AuthorVO author;
 
     /** 创建时间 */

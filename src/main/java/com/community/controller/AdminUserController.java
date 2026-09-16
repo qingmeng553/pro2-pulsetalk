@@ -15,16 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * 管理端 - 用户管理接口(仅 ADMIN 可见/可用)
- *
- * <pre>
- * GET    /admin/user/list         用户表分页(支持 keyword 账号/昵称搜索)
- * POST   /admin/user/{id}/ban     封禁用户(封禁后不可发帖、不可评论)
- * POST   /admin/user/{id}/unban   解封用户
- * DELETE /admin/user/{id}         删除用户(逻辑删除)
- * </pre>
- */
+/** 管理端 - 用户管理接口(仅 ADMIN 可见/可用)。 */
 @RestController
 @RequestMapping("/admin/user")
 @RequiredArgsConstructor

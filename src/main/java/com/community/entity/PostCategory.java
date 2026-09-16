@@ -10,9 +10,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * 帖子分类实体 post_category
- */
+/** 帖子分类实体 post_category。 */
 @Data
 @TableName("post_category")
 public class PostCategory implements Serializable {

@@ -7,16 +7,7 @@ import com.community.vo.PageVO;
 
 import java.util.List;
 
-/**
- * 私聊服务
- *
- * <p>规则：
- * <ul>
- *   <li>非好友双方各自最多发送 1 条消息，成为好友后可畅聊</li>
- *   <li>拉黑(双向)后无法发送消息，会话列表互相隐藏</li>
- *   <li>聊天记录仅保留 7 天，由定时任务清理</li>
- * </ul>
- */
+/** 私聊服务。 */
 public interface ChatService {
 
     /**

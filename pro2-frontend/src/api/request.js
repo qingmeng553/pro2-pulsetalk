@@ -3,22 +3,14 @@ import { ElMessage } from 'element-plus'
 import { getToken } from '../utils/auth'
 import { resetAuth, openLoginDialog } from '../store/user'
 
-/**
- * axios 实例
- *
- * 统一约定(与后端 R<T> 对应)：
- *  - 后端 HTTP 状态恒为 200，业务结果由响应体 code 表达
- *  - code === 200  -> 直接返回 data
- *  - code === 401  -> 未登录/登录失效：清空本地态并弹出【去登录/取消】确认弹窗(不出现403空白页)
- *  - code === 403  -> 无权限(如普通用户点管理员按钮)
- *  - code === 429  -> 接口限流
- */
+// axios 实例：后端统一 HTTP 200，业务结果看响应体 code
+
 const request = axios.create({
   baseURL: '/api',
   timeout: 20000
 })
 
-// 请求拦截：自动携带 sa-token
+// 自动携带 sa-token
 request.interceptors.request.use((config) => {
   const token = getToken()
   if (token) {
@@ -35,7 +27,7 @@ function notifyByCode(code, msg) {
   else ElMessage.error(msg || '请求失败，请稍后再试')
 }
 
-// 响应拦截：解包 R<T>
+// 解包响应体
 request.interceptors.response.use(
   (response) => {
     const body = response.data
@@ -43,7 +35,7 @@ request.interceptors.response.use(
       if (body.code === 200) {
         return body.data
       }
-      // 登录态失效：弹出登录确认弹窗
+      // 登录态失效弹登录框
       if (body.code === 401) {
         resetAuth()
         openLoginDialog()

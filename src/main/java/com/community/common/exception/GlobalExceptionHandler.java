@@ -16,12 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-/**
- * 全局异常处理器
- *
- * <p>Sa-Token 未登录(NotLoginException)/无权限(NotRoleException)在注解鉴权阶段抛出，
- * 统一在这里兜底，转换为 401/403 业务码，前端据此弹出“去登录/取消”弹窗，而不是 403 空白页。
- */
+/** 全局异常处理器。 */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {

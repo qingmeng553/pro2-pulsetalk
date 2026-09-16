@@ -7,13 +7,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * 帖子详情 VO
- *
- * <p>说明：本对象整体可作为热点详情缓存 JSON 序列化；
- * 动态字段(viewCount/likeCount/collectCount/liked/collected)在缓存回填后每次读取实时覆盖。
- * 未登录/未知字段反序列化兼容：{@link JsonIgnoreProperties} 忽略未知键。
- */
+/** 帖子详情 VO。 */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PostDetailVO {

@@ -150,6 +150,76 @@ a {
   --el-button-active-border-color: var(--brand-dark);
 }
 
+/* ---------- 动效 ---------- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes popIn {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.el-button {
+  transition: transform 0.16s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.el-button:active {
+  transform: scale(0.97);
+}
+.el-button:hover {
+  box-shadow: 0 4px 14px rgba(91, 124, 250, 0.18);
+}
+
+.empty-tip {
+  animation: fadeUp 0.4s ease both;
+}
+.msg-row,
+.comment-item,
+.rank-row {
+  animation: fadeUp 0.28s ease both;
+}
+
+/* 点赞 / 收藏选中时弹一下 */
+.action-btn.active {
+  animation: popIn 0.36s ease;
+}
+/* 榜单前三名浮动 */
+.rank-row:nth-child(-n + 3) .rank-no {
+  animation: floatY 2.6s ease-in-out infinite;
+}
+/* 未读红点浮动 */
+.nav-dot,
+.t-dot,
+.n-dot {
+  animation: floatY 2.4s ease-in-out infinite;
+}
+/* 卡片标题与图片过渡 */
+.post-card .title {
+  transition: color 0.18s ease;
+}
+.post-card:hover .title {
+  color: var(--brand);
+}
+.gallery-img {
+  transition: transform 0.25s ease;
+}
+.gallery-img:hover {
+  transform: scale(1.03);
+}
+/* 列表项点击反馈 */
+.cat-chip:active,
+.t-item:active,
+.n-item:active,
+.rank-row:active {
+  transform: scale(0.99);
+}
+
+
 /* ============================================================
    移动端适配(手机浏览器)
    - 收紧容器内边距、字号与点击区域

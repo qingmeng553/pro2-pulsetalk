@@ -24,25 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-/**
- * 认证模块接口
- *
- * <pre>
- * POST /auth/register           用户注册
- * POST /auth/login              登录，返回 sa-token
- * POST /auth/logout             登出(需token)
- * GET  /auth/current-user       获取当前登录用户(返回role角色)
- * POST /auth/upload-avatar      上传头像(需登录，返回 minio 图片 url)
- * ---- v3 账号自助 ----
- * PUT  /auth/profile            修改昵称(改名，需登录)
- * PUT  /auth/password           修改密码(需登录，校验原密码)
- * GET  /auth/security-question  查询密保问题状态(需登录)
- * POST /auth/security-question  设置个人密保问题(需登录，仅可设置一次)
- * ---- v3 忘记密码(公开，带限流) ----
- * POST /auth/forgot/question    根据用户名获取密保问题
- * POST /auth/forgot/reset       校验密保答案并重置密码
- * </pre>
- */
+/** 认证模块接口。 */
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -84,9 +66,7 @@ public class AuthController {
     public R<String> uploadAvatar(@RequestParam("file") MultipartFile file) {
         return R.ok(authService.uploadAvatar(file));
     }
-
-    // ==================== v3：账号自助 ====================
-
+    // ---- v3：账号自助 ----
     /** 修改昵称(改名) */
     @SaCheckLogin
     @PutMapping("/profile")
@@ -116,9 +96,7 @@ public class AuthController {
         authService.setSecurityQuestion(dto);
         return R.ok();
     }
-
-    // ==================== v3：忘记密码(公开，限流保护) ====================
-
+    // ---- v3：忘记密码(公开，限流保护) ----
     /** 忘记密码第一步：根据用户名查询密保问题 */
     @PostMapping("/forgot/question")
     public R<SecurityQuestionVO> forgotQuestion(@Valid @RequestBody ForgotQueryDTO dto) {

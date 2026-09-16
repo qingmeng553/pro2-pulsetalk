@@ -10,15 +10,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * 好友关系实体 user_friend
- *
- * <p>关系状态：0=PENDING(申请中) 1=ACCEPTED(已通过)
- * <ul>
- *   <li>申请：插入一条 PENDING(user_id=申请方, friend_id=被申请方)</li>
- *   <li>通过：该行置 ACCEPTED，并补一条反向 ACCEPTED(互为好友)</li>
- * </ul>
- */
+/** 好友关系实体 user_friend。 */
 @Data
 @TableName("user_friend")
 public class UserFriend implements Serializable {

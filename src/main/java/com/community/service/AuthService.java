@@ -12,12 +12,7 @@ import com.community.vo.LoginVO;
 import com.community.vo.SecurityQuestionVO;
 import org.springframework.web.multipart.MultipartFile;
 
-/**
- * 用户认证服务
- *
- * <p>Sa-Token 完成登录会话，token 存入 Redis(sa-token-redis-jackson 持久层)。
- * v3 扩展：改名、修改密码、密保问题设置与「忘记密码」找回。
- */
+/** 用户认证服务。 */
 public interface AuthService {
 
     /**
@@ -49,9 +44,7 @@ public interface AuthService {
      * 上传头像(需登录)，更新用户头像并返回 MinIO URL
      */
     String uploadAvatar(MultipartFile file);
-
-    // ==================== v3：账号自助 ====================
-
+    // ---- v3：账号自助 ----
     /**
      * 修改昵称(改名)，返回更新后的当前用户信息
      *

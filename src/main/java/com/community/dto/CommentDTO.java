@@ -4,9 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-/**
- * 发表评论请求（一级评论）
- */
+/** 发表评论请求（一级评论）。 */
 @Data
 public class CommentDTO {
 

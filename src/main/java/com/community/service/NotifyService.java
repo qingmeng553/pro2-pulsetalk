@@ -5,12 +5,7 @@ import com.community.vo.PageVO;
 
 import java.util.List;
 
-/**
- * 站内消息通知服务
- *
- * <p>覆盖事件：有人赞了你(LIKE)、评论了你(COMMENT)、收藏了你(COLLECT)、
- * 申请/通过好友(FRIEND)。点赞/收藏取消时同步撤回未读通知。
- */
+/** 站内消息通知服务。 */
 public interface NotifyService {
 
     /** 赞了你的帖子时通知(自己赞自己不发) */

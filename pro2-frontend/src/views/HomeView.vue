@@ -42,6 +42,9 @@
       <el-button :loading="loading" round @click="loadMore">加载更多</el-button>
     </div>
     <div v-else-if="posts.length" class="load-more done">—— 到底啦 ——</div>
+
+    <!-- 移动端悬浮发帖 -->
+    <router-link v-if="isLoggedIn" to="/post/create" class="fab-post" title="发帖">＋</router-link>
   </div>
 </template>
 
@@ -51,7 +54,7 @@ import { useRouter } from 'vue-router'
 import PostCard from '../components/PostCard.vue'
 import { apiCategoryList, apiPostList, apiPinnedPost } from '../api/post'
 import { runCardEntrance, bindHoverLift } from '../utils/d3fx'
-import { authState } from '../store/user'
+import { authState, isLoggedIn } from '../store/user'
 
 const router = useRouter()
 const categories = ref([])
@@ -213,6 +216,34 @@ onMounted(() => {
   margin-top: 26px;
   color: var(--text-sub);
   font-size: 13px;
+}
+
+/* 移动端悬浮发帖按钮 */
+.fab-post {
+  display: none;
+}
+@media (max-width: 640px) {
+  .fab-post {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    right: 18px;
+    bottom: 24px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--brand-gradient);
+    color: #fff;
+    font-size: 26px;
+    line-height: 1;
+    box-shadow: 0 8px 20px rgba(91, 124, 250, 0.35);
+    z-index: 15;
+    transition: transform 0.2s ease;
+  }
+  .fab-post:active {
+    transform: scale(0.92);
+  }
 }
 
 /* ---------- 移动端适配 ---------- */

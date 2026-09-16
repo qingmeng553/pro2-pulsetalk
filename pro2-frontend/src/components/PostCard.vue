@@ -176,4 +176,23 @@ async function askAdminDelete() {
   align-items: center;
   gap: 3px;
 }
+/* 悬浮细节：封面渐变遮罩 + 统计图标弹跳 */
+.cover {
+  position: relative;
+}
+.cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.18));
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+.post-card:hover .cover::after {
+  opacity: 1;
+}
+.post-card:hover .stat .el-icon {
+  animation: popIn 0.4s ease;
+}
 </style>

@@ -2,9 +2,7 @@ package com.community.vo;
 
 import lombok.Data;
 
-/**
- * 点赞/收藏切换结果 VO
- */
+/** 点赞/收藏切换结果 VO。 */
 @Data
 public class InteractionVO {
 

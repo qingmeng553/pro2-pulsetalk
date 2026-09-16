@@ -5,9 +5,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-/**
- * 用户注册请求
- */
+/** 用户注册请求。 */
 @Data
 public class RegisterDTO {
 

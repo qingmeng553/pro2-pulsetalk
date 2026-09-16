@@ -9,12 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 
-/**
- * Redis 固定窗口限流实现
- *
- * <p>原理：对限流键执行 INCR，首次 +1 时同时设置过期时间(窗口)；窗口内计数超过阈值即拒绝。
- * 固定窗口在窗口临界处可能有 2 倍流量突刺，胜在实现简单、无锁；如需更平滑可演进为滑动窗口/令牌桶(面试可扩展点)。
- */
+/** Redis 固定窗口限流实现。 */
 @Service
 @RequiredArgsConstructor
 public class RateLimitServiceImpl implements RateLimitService {

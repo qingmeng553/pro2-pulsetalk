@@ -2,11 +2,7 @@ package com.community.service;
 
 import org.springframework.web.multipart.MultipartFile;
 
-/**
- * MinIO 对象存储服务
- *
- * <p>用于用户头像、帖子配图上传；上传前做格式/大小/魔数校验。
- */
+/** MinIO 对象存储服务。 */
 public interface MinioFileService {
 
     /**

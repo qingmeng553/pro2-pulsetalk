@@ -6,9 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * 帖子列表项 VO(首页帖子流)
- */
+/** 帖子列表项 VO(首页帖子流)。 */
 @Data
 public class PostListItemVO {
 

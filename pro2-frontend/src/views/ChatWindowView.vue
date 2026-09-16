@@ -90,15 +90,12 @@ const friendHint = ref(false)
 const loadingHistory = ref(true)
 const scrollRef = ref()
 
-// ==================== 消息去重与合并(单一路径，杜绝重复渲染) ====================
-const seenIds = new Set()   // 已渲染过的消息ID(messageId 去重)
-let maxId = 0               // 已接收的最大消息ID(轮询增量游标)
-let disposed = false        // 会话销毁/切换后置 true，作废在途旧请求(等价于解绑旧监听)
+// 消息去重与合并
+const seenIds = new Set()   // 已渲染消息 id
+let maxId = 0               // 轮询游标
+let disposed = false        // 离开或切换会话后作废在途请求
 
-/**
- * 去重合并：任何来源(历史列表 / 轮询推送 / 发送成功回执)的消息都经此追加。
- * 已存在相同 messageId 的直接跳过；返回本次真正新增的条数。
- */
+// 按 id 去重后追加，返回新增条数
 function mergeIncoming(list) {
   if (!Array.isArray(list) || !list.length) return 0
   let added = 0
@@ -129,7 +126,7 @@ function scrollBottom() {
   })
 }
 
-// ==================== 已读与角标 ====================
+// 已读与角标
 
 async function refreshBadge() {
   try {
@@ -140,7 +137,7 @@ async function refreshBadge() {
   }
 }
 
-/** 标记已读(仅当仍停留在同一会话时生效，防止切会话后误标) */
+// 标记已读
 async function markRead() {
   if (blocked.value || !myId.value || disposed) return
   try {
@@ -151,7 +148,7 @@ async function markRead() {
   }
 }
 
-// ==================== 历史加载 ====================
+// 历史消息
 
 async function loadHistory() {
   const target = otherUserId.value
@@ -172,7 +169,7 @@ async function loadHistory() {
     const lastPage = Math.max(1, Math.ceil(total / 50))
     const data = total === 0 ? { records: [] } : await apiChatMessages(target, { page: lastPage, size: 50 })
     if (disposed || otherUserId.value !== target) return
-    // 历史列表同样走去重合并(防御分页边界重复返回)
+    // 历史同样去重
     mergeIncoming(data.records || [])
     scrollBottom()
     markRead()
@@ -187,7 +184,7 @@ async function loadHistory() {
   }
 }
 
-// ==================== 发送 ====================
+// 发送
 
 async function send() {
   const content = draft.value.trim()
@@ -195,7 +192,7 @@ async function send() {
   sending.value = true
   try {
     const msg = await apiChatSend(otherUserId.value, content)
-    // 发送成功：先本地去重合并(若在途轮询已带回该消息则自动跳过)，绝不再重复 push
+    // 发送成功后去重追加
     mergeIncoming([msg])
     draft.value = ''
     scrollBottom()
@@ -212,7 +209,7 @@ async function send() {
   }
 }
 
-// ==================== 轮询增量(带“防重入 + 会话校验”，等价于监听器只挂一次且随会话解绑) ====================
+// 轮询增量（防重入 + 会话校验）
 
 let timer = null
 let pollingInFlight = false // 防止上一次请求未返回时下一轮并发，避免同批消息被拉两次
@@ -223,7 +220,7 @@ async function pollNew() {
   pollingInFlight = true
   try {
     const data = await apiChatMessages(target, { afterId: maxId || undefined })
-    // 响应回来时若已切换/销毁会话，直接丢弃，防止把上一个会话的消息渲染进当前会话
+    // 已切换会话则丢弃响应
     if (disposed || otherUserId.value !== target) return
     const added = mergeIncoming(data.records || [])
     if (added > 0) {
@@ -231,7 +228,7 @@ async function pollNew() {
       markRead()
     }
   } catch (e) {
-    /* 轮询失败静默，等待下轮 */
+    /* 静默 */
   } finally {
     pollingInFlight = false
   }
@@ -249,11 +246,10 @@ function stopPolling() {
   }
 }
 
-// ==================== 生命周期：切换会话先“解绑”旧状态，销毁彻底清理 ====================
+// 生命周期
 
-// 同一组件内切换 /chat/A → /chat/B：立刻重置渲染状态并重新加载；
-// 旧会话在途请求的安全由“请求内 target 比对(见 loadHistory/pollNew/markRead)”保证 ——
-// 旧请求即使稍后返回，也会因 otherUserId 已变化而被丢弃，不会串进新会话。
+// 切换会话：重置状态并重新加载，旧请求靠 target 比对丢弃
+
 watch(otherUserId, () => {
   resetConversation()
   loadHistory()
@@ -351,7 +347,7 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: flex-end;
 }
-/* ---------- 移动端适配 ---------- */
+/* 移动端 */
 @media (max-width: 640px) {
   .chat-head {
     padding: 10px 12px;

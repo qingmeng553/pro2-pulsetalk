@@ -42,3 +42,11 @@ redis-data/
 ### 前端 ###
 pro2-frontend/node_modules/
 pro2-frontend/dist/
+
+### 内部文档(不对外/不提交) ###
+notes/
+
+### IDE ###
+.idea/
+*.iml
+out/

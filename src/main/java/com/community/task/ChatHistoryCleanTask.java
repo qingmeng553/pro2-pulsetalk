@@ -10,14 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
-/**
- * 私聊记录过期清理任务
- *
- * <p>产品规则：聊天记录仅保留 7 天。
- * 每天凌晨执行一次，物理删除 7 天前(不含7天前当天？此处取“严格早于7天前0点”以上一天为界)
- * 为便于理解：删除 create_time &lt; now-7days 的消息。
- * 说明：私聊数据属于临时会话数据，过期即物理清除，不违反“业务主数据逻辑删除”的约束。
- */
+/** 私聊记录过期清理任务。 */
 @Slf4j
 @Component
 @RequiredArgsConstructor

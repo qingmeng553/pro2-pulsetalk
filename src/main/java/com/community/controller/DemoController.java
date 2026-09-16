@@ -7,14 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * 探测/引导接口
- *
- * <pre>
- * GET /           服务信息与接口引导(访问后端根路径不再 404)
- * GET /demo/ping  存活探测(供 docker healthcheck / 运维探活)
- * </pre>
- */
+/** 探测/引导接口。 */
 @RestController
 public class DemoController {
 

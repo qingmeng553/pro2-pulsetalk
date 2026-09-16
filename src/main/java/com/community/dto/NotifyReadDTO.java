@@ -4,9 +4,7 @@ import lombok.Data;
 
 import java.util.List;
 
-/**
- * 通知已读请求(ids 为空表示全部标记已读)
- */
+/** 通知已读请求(ids 为空表示全部标记已读)。 */
 @Data
 public class NotifyReadDTO {
 

@@ -5,11 +5,7 @@ import com.community.vo.UserProfileVO;
 
 import java.util.List;
 
-/**
- * 用户社交关系服务：好友 + 黑名单 + 用户主页
- *
- * <p>黑名单语义：拉黑即双向阻断互动(双方不可互发私聊、会话互相隐藏、好友关系解除)。
- */
+/** 用户社交关系服务：好友 + 黑名单 + 用户主页。 */
 public interface RelationService {
 
     /**
@@ -19,9 +15,7 @@ public interface RelationService {
      * @param targetId 被查看用户ID
      */
     UserProfileVO profile(Long viewerId, Long targetId);
-
-    // ==================== 好友 ====================
-
+    // ---- 好友 ----
     /**
      * 发送好友申请(重复/已为好友/黑名单等情况会校验并提示)
      */
@@ -51,9 +45,7 @@ public interface RelationService {
      * 收到的好友申请列表(待我处理)
      */
     List<AuthorVO> pendingFriendList(long myUserId);
-
-    // ==================== 黑名单 ====================
-
+    // ---- 黑名单 ----
     /**
      * 拉黑用户(同时解除好友关系；双向阻断互动)
      */
@@ -68,9 +60,7 @@ public interface RelationService {
      * 我的黑名单列表
      */
     List<AuthorVO> blacklistList(long myUserId);
-
-    // ==================== 供聊天模块复用的关系判断 ====================
-
+    // ---- 供聊天模块复用的关系判断 ----
     /** 是否互为好友(存在任意方向 ACCEPTED) */
     boolean isFriend(long userIdA, long userIdB);
 

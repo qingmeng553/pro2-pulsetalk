@@ -4,9 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-/**
- * 忘记密码-通过密保答案重置密码请求
- */
+/** 忘记密码-通过密保答案重置密码请求。 */
 @Data
 public class ForgotResetDTO {
 

@@ -2,9 +2,7 @@ package com.community.vo;
 
 import lombok.Data;
 
-/**
- * 登录结果 VO：返回 sa-token 及用户信息
- */
+/** 登录结果 VO：返回 sa-token 及用户信息。 */
 @Data
 public class LoginVO {
 

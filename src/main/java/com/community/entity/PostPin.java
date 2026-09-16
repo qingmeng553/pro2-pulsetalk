@@ -10,13 +10,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * 置顶规则帖实体 post_pin（单行记录，id 固定为 1）
- *
- * <p>全站仅允许一条置顶帖(社区规则/公告)，由管理员共同维护：
- * 任意管理员都可以置顶新的规则帖(自动替换旧置顶)或取消置顶，
- * 也可以共同编辑该置顶帖内容(编辑接口对管理员放开作者限制)。
- */
+/** 置顶规则帖实体 post_pin（单行记录，id 固定为 1）。 */
 @Data
 @TableName("post_pin")
 public class PostPin implements Serializable {

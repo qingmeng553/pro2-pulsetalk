@@ -5,12 +5,7 @@ import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilde
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Jackson 全局序列化配置
- *
- * <p>将 Long/long 类型序列化为字符串，避免数据库自增主键(19位)超出
- * JavaScript Number 安全整数范围(2^53-1)导致前端精度丢失。
- */
+/** Jackson 全局序列化配置。 */
 @Configuration
 public class JacksonConfig {
 

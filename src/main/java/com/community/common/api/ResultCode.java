@@ -2,13 +2,7 @@ package com.community.common.api;
 
 import lombok.Getter;
 
-/**
- * 统一响应码枚举
- *
- * <p>约定：HTTP 状态码固定 200，业务结果通过响应体中的 {@code code} 表达，
- * 避免游客访问受限接口时浏览器出现原生 403 空白页；前端 axios 拦截器根据
- * code 弹出“去登录/取消”确认弹窗。
- */
+/** 统一响应码枚举。 */
 @Getter
 public enum ResultCode {
 

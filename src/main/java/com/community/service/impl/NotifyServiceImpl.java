@@ -27,9 +27,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * 站内消息通知服务实现
- */
+/** 站内消息通知服务实现。 */
 @Slf4j
 @Service
 @RequiredArgsConstructor

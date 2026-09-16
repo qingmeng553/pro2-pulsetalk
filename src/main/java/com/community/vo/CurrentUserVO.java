@@ -3,9 +3,7 @@ package com.community.vo;
 import com.community.entity.UserRole;
 import lombok.Data;
 
-/**
- * 当前登录用户信息(含角色)
- */
+/** 当前登录用户信息(含角色)。 */
 @Data
 public class CurrentUserVO {
 

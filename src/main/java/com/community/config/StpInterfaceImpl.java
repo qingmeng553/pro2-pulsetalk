@@ -11,13 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Sa-Token 权限数据源(角色加载)
- *
- * <p>Sa-Token 通过 StpInterface 获取当前登录用户的角色集合。
- * 数据库 role 存储为大写枚举(USER/ADMIN)，此处统一转为小写，
- * 与 @SaCheckRole("admin") 的声明保持一致(ADMIN → admin)。
- */
+/** Sa-Token 权限数据源(角色加载)。 */
 @Component
 @RequiredArgsConstructor
 public class StpInterfaceImpl implements StpInterface {

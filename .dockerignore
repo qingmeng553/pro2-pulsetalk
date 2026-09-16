@@ -21,3 +21,6 @@ logs/
 minio-data/
 mysql-data/
 redis-data/
+
+# 内部文档(不进镜像上下文)
+notes/

@@ -3,9 +3,7 @@ package com.community.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
-/**
- * 忘记密码-查询密保问题请求
- */
+/** 忘记密码-查询密保问题请求。 */
 @Data
 public class ForgotQueryDTO {
 

@@ -6,11 +6,7 @@ import lombok.Data;
 import java.util.List;
 import java.util.function.Function;
 
-/**
- * 通用分页结果 VO
- *
- * @param <T> 列表元素类型
- */
+/** 通用分页结果 VO。 */
 @Data
 public class PageVO<T> {
 

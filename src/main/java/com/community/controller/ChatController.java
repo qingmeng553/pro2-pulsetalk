@@ -22,17 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 私聊接口(需登录)
- *
- * <pre>
- * GET  /chat/threads           会话列表(最近联系人；拉黑会话隐藏)
- * GET  /chat/messages/{userId} 与某人消息(分页正序；afterId 增量拉取供轮询)
- * POST /chat/send/{userId}     发送消息(黑名单校验/非好友限1条)
- * POST /chat/read/{userId}     会话标记已读
- * GET  /chat/unread-count      全部未读私信数(顶栏角标)
- * </pre>
- */
+/** 私聊接口(需登录)。 */
 @RestController
 @RequestMapping("/chat")
 @RequiredArgsConstructor

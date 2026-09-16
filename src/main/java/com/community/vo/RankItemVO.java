@@ -2,9 +2,7 @@ package com.community.vo;
 
 import lombok.Data;
 
-/**
- * 热度榜单条目 VO(ZSet 数据，供 ECharts/D3 渲染)
- */
+/** 热度榜单条目 VO(ZSet 数据，供 ECharts/D3 渲染)。 */
 @Data
 public class RankItemVO {
 

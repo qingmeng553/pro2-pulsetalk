@@ -5,13 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-/**
- * Sa-Token 拦截器注册
- *
- * <p>注册综合拦截器 SaInterceptor（默认开启注解鉴权）后，
- * 控制器方法上的 @SaCheckLogin / @SaCheckRole("admin") 才会生效。
- * 未登录/无权限的异常由 {@code GlobalExceptionHandler} 统一转成 401/403 业务码。
- */
+/** Sa-Token 拦截器注册。 */
 @Configuration
 public class SaTokenConfigure implements WebMvcConfigurer {
 

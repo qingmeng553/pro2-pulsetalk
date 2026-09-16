@@ -12,7 +12,7 @@ import java.util.HexFormat;
  * <p>散列口径：{@code sha256( salt + rawPassword )}，盐值为 16 字节随机数转十六进制。
  * 验证时按相同口径重算并做常量时间比较，防时序侧信道。
  *
- * <p>说明：本实现刻意不引入 Spring Security，避免重型依赖；
+ * <p>本实现刻意不引入 Spring Security，避免重型依赖；
  * 生产环境可平滑升级为 BCrypt/Argon2(仅替换本类实现与 sql/init.sql 中的预置散列)。
  */
 public final class PasswordUtil {

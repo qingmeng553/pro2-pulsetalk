@@ -8,12 +8,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * MinIO 客户端配置
- *
- * <p>提供 MinioClient Bean，并在应用启动后自动创建桶(community-upload)与公共读策略。
- * MinIO 暂不可达时仅告警不阻塞启动(上传时会惰性重试建桶)。
- */
+/** MinIO 客户端配置。 */
 @Slf4j
 @Configuration
 @EnableConfigurationProperties(MinioProperties.class)

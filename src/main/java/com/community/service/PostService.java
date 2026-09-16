@@ -10,9 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-/**
- * 帖子服务：分类、列表、详情(Cache-Aside + 浏览计数)、发帖、编辑、删除(作者/管理员)、置顶规则帖
- */
+/** 帖子服务：分类、列表、详情(Cache-Aside + 浏览计数)、发帖、编辑、删除(作者/管理员)、置顶规则帖。 */
 public interface PostService {
 
     /**
@@ -59,9 +57,7 @@ public interface PostService {
      * 上传帖子配图(需登录)
      */
     String uploadImage(MultipartFile file);
-
-    // ==================== v2：置顶规则帖 ====================
-
+    // ---- v2：置顶规则帖 ----
     /**
      * 获取当前置顶规则帖(游客可访问；无置顶时返回 null)
      */

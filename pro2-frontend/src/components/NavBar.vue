@@ -1,5 +1,5 @@
 <template>
-  <header class="navbar">
+  <header class="navbar" :class="{ scrolled }">
     <div class="navbar-inner">
       <!-- 品牌 -->
       <router-link to="/" class="brand">
@@ -64,22 +64,37 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import AdminBadge from './AdminBadge.vue'
-import { authState, isLoggedIn, openLoginDialog, resetAuth } from '../store/user'
+import {
+  authState, isLoggedIn, openLoginDialog, resetAuth, refreshUser, needsHydrate
+} from '../store/user'
 import { badgeState, totalBadge, setBadges } from '../store/badge'
 import { apiNotifyUnread } from '../api/notify'
 import { apiChatUnread } from '../api/chat'
-import { apiLogout } from '../api/auth'
+import { apiLogout, apiCurrentUser } from '../api/auth'
 
 const router = useRouter()
 
-/** 登录后轮询刷新未读角标(15s 一次) */
+// 有 token 但缺用户信息时补拉一次，避免"已登录却显示未登录"
+async function hydrateUser() {
+  if (!needsHydrate()) return
+  try {
+    refreshUser(await apiCurrentUser())
+  } catch (e) {
+    /* 令牌失效交给拦截器处理 */
+  }
+}
+
+// 未读角标轮询（15s）
 let timer = null
 async function refreshBadges() {
-  if (!isLoggedIn.value) return
+  if (!isLoggedIn.value) {
+    setBadges(0, 0)
+    return
+  }
   try {
     const [n, c] = await Promise.all([apiNotifyUnread(), apiChatUnread()])
     setBadges(n?.count || 0, c?.count || 0)
@@ -101,7 +116,7 @@ function onCommand(cmd) {
         try {
           await apiLogout()
         } catch (e) {
-          // 即使登出接口失败也清理本地态
+          /* 忽略 */
         }
         resetAuth()
         setBadges(0, 0)
@@ -112,13 +127,29 @@ function onCommand(cmd) {
   }
 }
 
+// 滚动时给导航加投影
+const scrolled = ref(false)
+function onScroll() {
+  scrolled.value = window.scrollY > 8
+}
+
+// 登录状态变化后立即刷新角标
+watch(() => authState.version, () => {
+  hydrateUser()
+  refreshBadges()
+})
+
 onMounted(() => {
+  hydrateUser()
   refreshBadges()
   timer = setInterval(refreshBadges, 15000)
+  window.addEventListener('scroll', onScroll, { passive: true })
+  onScroll()
 })
 
 onBeforeUnmount(() => {
   if (timer) clearInterval(timer)
+  window.removeEventListener('scroll', onScroll)
 })
 </script>
 
@@ -130,6 +161,10 @@ onBeforeUnmount(() => {
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
+  transition: box-shadow 0.25s ease;
+}
+.navbar.scrolled {
+  box-shadow: 0 6px 20px rgba(40, 60, 120, 0.08);
 }
 .navbar-inner {
   max-width: 1080px;
@@ -158,6 +193,10 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   font-size: 17px;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.brand:hover .brand-logo {
+  transform: rotate(-8deg) scale(1.08);
 }
 .nav {
   flex: 1;
@@ -198,6 +237,11 @@ onBeforeUnmount(() => {
   margin-left: 5px;
   vertical-align: 2px;
   box-shadow: 0 0 0 2px #fff;
+  animation: dotPulse 1.8s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 2px #fff; }
+  50% { box-shadow: 0 0 0 4px rgba(245, 108, 108, 0.28); }
 }
 .user-area {
   display: flex;

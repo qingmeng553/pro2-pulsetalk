@@ -10,12 +10,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * 黑名单实体 user_blacklist
- *
- * <p>业务语义为“双向阻断”：A 拉黑 B 后，(A,B) 与 (B,A) 均视为已拉黑，
- * 双方无法互发私聊、会话列表互相隐藏，好友关系同时解除。
- */
+/** 黑名单实体 user_blacklist。 */
 @Data
 @TableName("user_blacklist")
 public class UserBlacklist implements Serializable {

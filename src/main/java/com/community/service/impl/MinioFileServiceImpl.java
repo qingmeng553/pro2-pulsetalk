@@ -21,12 +21,7 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * MinIO 对象存储服务实现
- *
- * <p>路径按业务目录/日期分桶子目录存放：{@code avatars/yyyyMM/uuid.ext}、{@code post-images/yyyyMM/uuid.ext}。
- * 上传后返回形如 {@code http://public-endpoint/bucket/object} 的公共可访问 URL。
- */
+/** MinIO 对象存储服务实现。 */
 @Slf4j
 @Service
 @RequiredArgsConstructor

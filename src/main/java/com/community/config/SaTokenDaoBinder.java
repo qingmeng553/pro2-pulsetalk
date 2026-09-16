@@ -11,14 +11,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
 
-/**
- * 强制将 Sa-Token 持久层绑定为 Redis 实现
- *
- * <p>sa-token-redis-jackson 的 {@link SaTokenDaoRedisJackson} 已声明为 @Component 并自动装配
- * RedisConnectionFactory，会话即可持久化到 Redis。此处再做一次显式兜底绑定：
- * 应用启动完成后，若 SaManager 当前持久层不是 Redis 实现，则强制切换，
- * 保证「登录会话 token 存入 Redis」这一硬性要求在任何启动顺序下都成立。
- */
+/** 强制将 Sa-Token 持久层绑定为 Redis 实现。 */
 @Slf4j
 @Configuration
 public class SaTokenDaoBinder {

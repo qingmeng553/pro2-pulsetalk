@@ -4,12 +4,7 @@ import com.community.vo.RankItemVO;
 
 import java.util.List;
 
-/**
- * 热度榜单服务(Redis ZSet)
- *
- * <p>榜单键：{@code community:post:hot:zset}，score = 点赞*3 + 收藏*5 + 浏览*0.1。
- * 各写事件实时增量维护(点赞±3 / 收藏±5 / 浏览+0.1)，读取时 ZREVRANGE 取 TopN。
- */
+/** 热度榜单服务(Redis ZSet)。 */
 public interface RankService {
 
     /**

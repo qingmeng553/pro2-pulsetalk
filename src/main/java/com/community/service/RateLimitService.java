@@ -4,11 +4,7 @@ import com.community.common.api.ResultCode;
 import com.community.common.constant.RedisKeys;
 import com.community.common.exception.BusinessException;
 
-/**
- * 接口限流服务(基于 Redis 计数器 + 过期时间实现固定窗口限流)
- *
- * <p>用于发帖、发表评论接口，抵御刷帖/刷屏。
- */
+/** 接口限流服务(基于 Redis 计数器 + 过期时间实现固定窗口限流)。 */
 public interface RateLimitService {
 
     /** 发帖限流：同一用户每分钟最多发帖数 */

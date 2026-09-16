@@ -15,18 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-/**
- * 点赞/收藏服务实现
- *
- * <p>点赞与收藏采用同一套 Redis 模式：
- * <ul>
- *   <li>{@code community:post:like:{postId}} / {@code collect}：Set 存用户id集合(判重+计数+幂等)</li>
- *   <li>{@code community:post:like:count:{postId}}：String 快速计数</li>
- *   <li>热度 ZSet 同步 ±delta：点赞±3、收藏±5，保证榜单实时性</li>
- *   <li>写入脏标记集合，供每 5 分钟定时任务批量同步 MySQL</li>
- * </ul>
- * 全程不直接 UPDATE post 表，符合“不要每次点赞直接写数据库”的约束。
- */
+/** 点赞/收藏服务实现。 */
 @Slf4j
 @Service
 @RequiredArgsConstructor

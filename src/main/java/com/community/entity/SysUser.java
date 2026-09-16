@@ -11,16 +11,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * 用户实体 sys_user
- *
- * <p>v3 扩展：
- * <ul>
- *   <li>securityQuestion / securityAnswer：密保问题与答案(答案加密存储)，用于「忘记密码」</li>
- *   <li>status：0 正常 / 1 封禁（封禁用户不可发帖、不可评论）</li>
- *   <li>isDeleted：逻辑删除标记（管理员删除用户），MyBatis-Plus @TableLogic 自动过滤</li>
- * </ul>
- */
+/** 用户实体 sys_user。 */
 @Data
 @TableName("sys_user")
 public class SysUser implements Serializable {

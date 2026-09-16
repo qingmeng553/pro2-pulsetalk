@@ -2,12 +2,7 @@ package com.community.service;
 
 import com.community.vo.InteractionVO;
 
-/**
- * 点赞/收藏服务
- *
- * <p>设计要点：点赞/取消点赞、收藏/取消收藏只操作 Redis(Set + 计数 String)，
- * 不实时写 MySQL；计数由定时任务每 5 分钟批量同步落库。
- */
+/** 点赞/收藏服务。 */
 public interface PostInteractionService {
 
     /**

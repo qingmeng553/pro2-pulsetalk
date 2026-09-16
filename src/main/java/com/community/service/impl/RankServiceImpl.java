@@ -24,13 +24,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * 热度榜单服务实现
- *
- * <p>注意：为避免与 {@code PostInteractionServiceImpl} 形成循环依赖
- * (互动服务需要调用本服务 bump 更新热度分)，本服务内部的实时计数(点赞/收藏/浏览)
- * 直接读取 Redis，不再注入互动服务。
- */
+/** 热度榜单服务实现。 */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -125,9 +119,7 @@ public class RankServiceImpl implements RankService {
             return null;
         }
     }
-
-    // ==================== Redis 实时计数读取(直接读，避免服务间循环依赖) ====================
-
+    // ---- Redis 实时计数读取(直接读，避免服务间循环依赖) ----
     /** 实时点赞数：Set size */
     private long likeCount(long postId) {
         Long size = redisTemplate.opsForSet().size(RedisKeys.likeKey(postId));

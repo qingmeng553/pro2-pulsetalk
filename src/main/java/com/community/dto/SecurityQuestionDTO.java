@@ -4,9 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-/**
- * 设置密保问题请求(问题与答案均由用户自定义)
- */
+/** 设置密保问题请求(问题与答案均由用户自定义)。 */
 @Data
 public class SecurityQuestionDTO {
 

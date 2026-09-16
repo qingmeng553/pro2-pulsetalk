@@ -29,9 +29,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * 评论服务实现
- */
+/** 评论服务实现。 */
 @Slf4j
 @Service
 @RequiredArgsConstructor

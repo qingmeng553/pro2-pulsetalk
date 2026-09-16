@@ -10,18 +10,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * 站内消息通知实体 user_notify
- *
- * <p>type 取值：
- * <ul>
- *   <li>LIKE    有人点赞了你的帖子</li>
- *   <li>COMMENT 有人评论了你的帖子</li>
- *   <li>COLLECT 有人收藏了你的帖子</li>
- *   <li>FRIEND  好友申请 / 通过了好友申请</li>
- * </ul>
- * 点赞/收藏取消时会同步删除对应的未读通知，保证消息真实反映当前状态。
- */
+/** 站内消息通知实体 user_notify。 */
 @Data
 @TableName("user_notify")
 public class UserNotify implements Serializable {

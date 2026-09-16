@@ -11,9 +11,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * 帖子评论实体 post_comment（一级评论，不做楼中楼嵌套）
- */
+/** 帖子评论实体 post_comment（一级评论，不做楼中楼嵌套）。 */
 @Data
 @TableName("post_comment")
 public class PostComment implements Serializable {

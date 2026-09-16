@@ -14,13 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * 种子数据初始化器
- *
- * <p>幂等兜底：若库中没有任何用户/分类，则预置 admin(ADMIN)/test(USER) 账号(密码 123456)与默认分类。
- * 与 sql/init.sql 中的预置数据保持等价(密码均为 PasswordUtil 散列)。
- * 仅当数据表已初始化(手动执行过 init.sql)时才会执行；表缺失时静默跳过，不阻塞启动。
- */
+/** 种子数据初始化器。 */
 @Slf4j
 @Component
 @RequiredArgsConstructor

@@ -49,18 +49,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * 帖子服务实现
- *
- * <p>Redis 设计落点：
- * <ul>
- *   <li>Cache-Aside 旁路缓存：详情缓存 {@code community:post:cache:{id}}，更新/删除后直接删缓存，下次请求回写</li>
- *   <li>防缓存穿透：DB 无此帖时写空值缓存 {@code community:post:cache:null:{id}}</li>
- *   <li>防缓存雪崩：详情缓存 TTL 加入 30~60 分钟随机偏移</li>
- *   <li>浏览量：{@code community:post:view:{id}} INCR 自增，同时热度 ZSet +0.1，并标记脏集合等待定时落库</li>
- *   <li>点赞/收藏只操作 Redis(见 {@link PostInteractionServiceImpl})，本服务只负责读聚合</li>
- * </ul>
- */
+/** 帖子服务实现。 */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -79,21 +68,17 @@ public class PostServiceImpl implements PostService {
     private final MinioFileService minioFileService;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
-
-    // ==================== 分类 ====================
-
+    // ---- 分类 ----
     @Override
     public List<PostCategory> listCategories() {
         return categoryMapper.selectList(new LambdaQueryWrapper<PostCategory>()
                 .orderByAsc(PostCategory::getSort)
                 .orderByAsc(PostCategory::getId));
     }
-
-    // ==================== 列表 ====================
-
+    // ---- 列表 ----
     @Override
     public PageVO<PostListItemVO> pageList(long page, long size, Long categoryId, Long userId) {
-        // 列表查询不加载大字段 content，减轻 IO/带宽
+        // 列表不返回大字段 content
         QueryWrapper<Post> qw = new QueryWrapper<>();
         qw.select("id", "user_id", "category_id", "title", "img_urls",
                 "view_count", "like_count", "collect_count", "create_time");
@@ -132,7 +117,7 @@ public class PostServiceImpl implements PostService {
             vo.setCategoryName(catMap.containsKey(post.getCategoryId())
                     ? catMap.get(post.getCategoryId()).getName() : null);
             vo.setCover(firstImage(post.getImgUrls()));
-            // 计数以 Redis 实时值为准(与库值基本一致，5分钟内可能的差异在此校正)
+            // 计数取 Redis 实时值
             vo.setViewCount((int) interactionService.viewCount(post.getId()));
             vo.setLikeCount((int) interactionService.likeCount(post.getId()));
             vo.setCollectCount((int) interactionService.collectCount(post.getId()));
@@ -149,9 +134,7 @@ public class PostServiceImpl implements PostService {
         result.setPages(p.getPages());
         return result;
     }
-
-    // ==================== 详情(Cache-Aside) ====================
-
+    // ---- 详情(Cache-Aside) ----
     @Override
     public PostDetailVO detail(long postId) {
         // 1) 空值缓存命中 → 直接判定不存在(防缓存穿透的第二步拦截)
@@ -254,9 +237,7 @@ public class PostServiceImpl implements PostService {
             vo.setCollected(false);
         }
     }
-
-    // ==================== 发帖 / 编辑 / 删除 ====================
-
+    // ---- 发帖 / 编辑 / 删除 ----
     @Override
     public Post create(long userId, PostDTO dto) {
         // v3 封禁校验：被封禁用户不可发帖
@@ -296,7 +277,7 @@ public class PostServiceImpl implements PostService {
         post.setImgUrls(toImgUrlsJson(dto.getImgUrls()));
         postMapper.updateById(post);
 
-        // Cache-Aside：更新数据库之后直接删除缓存，下次请求自动回写
+        // Cache-Aside：更新后失效缓存
         evictPostCache(postId);
         log.info("[编辑] userId={} 修改帖子 postId={}", userId, postId);
         return post;
@@ -334,9 +315,7 @@ public class PostServiceImpl implements PostService {
     public String uploadImage(MultipartFile file) {
         return minioFileService.uploadPostImage(file);
     }
-
-    // ==================== v2：置顶规则帖 ====================
-
+    // ---- v2：置顶规则帖 ----
     @Override
     public PostDetailVO getPinnedPost() {
         PostPin pin = postPinMapper.selectById(PostPin.PIN_ID);
@@ -382,9 +361,7 @@ public class PostServiceImpl implements PostService {
             log.info("[置顶] 管理员 {} 取消了置顶规则帖", adminId);
         }
     }
-
-    // ==================== 私有辅助 ====================
-
+    // ---- 私有辅助 ----
     /**
      * 清理帖子在 Redis 中的全部痕迹：互动键、缓存、榜单、脏标记
      */

@@ -14,22 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-/**
- * 社交关系接口：用户主页(点头像了解彼此) + 好友 + 黑名单
- *
- * <pre>
- * GET  /user/{id}                  用户公开主页(游客可看；含 relation 关系)
- * POST /friend/request/{userId}    发送好友申请
- * POST /friend/accept/{userId}     通过好友申请
- * POST /friend/reject/{userId}     拒绝好友申请
- * POST /friend/remove/{userId}     删除好友
- * GET  /friend/list                我的好友
- * GET  /friend/pending/list        收到的好友申请(待处理)
- * POST /blacklist/add/{userId}     拉黑(双向阻断互动，自动解除好友)
- * POST /blacklist/remove/{userId}  解除拉黑
- * GET  /blacklist/list             我的黑名单
- * </pre>
- */
+/** 社交关系接口：用户主页(点头像了解彼此) + 好友 + 黑名单。 */
 @RestController
 @RequiredArgsConstructor
 public class RelationController {
@@ -42,9 +27,7 @@ public class RelationController {
         Long viewer = StpUtil.isLogin() ? StpUtil.getLoginIdAsLong() : null;
         return R.ok(relationService.profile(viewer, id));
     }
-
-    // ==================== 好友 ====================
-
+    // ---- 好友 ----
     /** 发送好友申请 */
     @SaCheckLogin
     @PostMapping("/friend/request/{userId}")
@@ -90,9 +73,7 @@ public class RelationController {
     public R<List<AuthorVO>> pendingList() {
         return R.ok(relationService.pendingFriendList(StpUtil.getLoginIdAsLong()));
     }
-
-    // ==================== 黑名单 ====================
-
+    // ---- 黑名单 ----
     /** 拉黑(双向阻断互动) */
     @SaCheckLogin
     @PostMapping("/blacklist/add/{userId}")

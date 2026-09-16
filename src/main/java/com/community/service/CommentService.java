@@ -4,9 +4,7 @@ import com.community.dto.CommentDTO;
 import com.community.vo.CommentVO;
 import com.community.vo.PageVO;
 
-/**
- * 评论服务(一级评论，不做楼中楼嵌套)
- */
+/** 评论服务(一级评论，不做楼中楼嵌套)。 */
 public interface CommentService {
 
     /**

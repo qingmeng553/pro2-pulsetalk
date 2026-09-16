@@ -4,9 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-/**
- * 修改密码请求(需校验原密码)
- */
+/** 修改密码请求(需校验原密码)。 */
 @Data
 public class UpdatePasswordDTO {
 

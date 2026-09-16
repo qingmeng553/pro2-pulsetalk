@@ -155,26 +155,9 @@ async function onLogin() {
   }
   loading.value = true
   try {
-    // 1) 登录接口：拿到 token + 用户信息
     const data = await apiLogin(loginForm)
-    setBadges(0, 0) // 切换账号后清空上一个账号的未读角标
-
-    // 2) 立即写入全局响应式仓库(token + 用户/角色)，并取出“登录后待办动作”
-    const pendingAction = applyLogin(data.user, data.tokenValue)
-
-    // 3) 兜底：拉取当前登录用户权威信息刷新仓库(角色/封禁/密保状态以服务端为准)
-    try {
-      const fresh = await apiCurrentUser()
-      refreshUser(fresh)
-    } catch (err) {
-      // getInfo 偶发失败不影响登录(已用登录返回值渲染)，静默即可
-    }
+    await afterAuth(data)
     ElMessage.success(`欢迎回来，${data.user.nickname || data.user.username}`)
-
-    // 4) 状态就绪后再执行路由跳转/待办动作(如登录后继续点赞)
-    if (typeof pendingAction === 'function') {
-      pendingAction()
-    }
   } catch (e) {
     /* 错误已由拦截器提示 */
   } finally {
@@ -182,7 +165,7 @@ async function onLogin() {
   }
 }
 
-/** 注册 */
+/** 注册（成功后自动登录） */
 async function onRegister() {
   try {
     await registerFormRef.value.validate()
@@ -192,13 +175,32 @@ async function onRegister() {
   loading.value = true
   try {
     await apiRegister(registerForm)
-    ElMessage.success('注册成功，请登录')
-    loginForm.username = registerForm.username
-    mode.value = 'login'
+    const data = await apiLogin({
+      username: registerForm.username,
+      password: registerForm.password
+    })
+    await afterAuth(data)
+    ElMessage.success('注册成功，已自动登录')
   } catch (e) {
     /* 错误已由拦截器提示 */
   } finally {
     loading.value = false
+  }
+}
+
+/** 登录成功统一处理：写状态 → 校准用户 → 执行待办 */
+async function afterAuth(data) {
+  setBadges(0, 0)
+  const pendingAction = applyLogin(data.user, data.tokenValue)
+  try {
+    const fresh = await apiCurrentUser()
+    refreshUser(fresh)
+  } catch (err) {
+    // 校准失败时保留登录返回值，避免界面退回未登录
+    applyLogin(data.user, data.tokenValue)
+  }
+  if (typeof pendingAction === 'function') {
+    pendingAction()
   }
 }
 
