@@ -25,7 +25,7 @@
         <el-table-column label="用户" min-width="180">
           <template #default="{ row }">
             <div class="u-cell">
-              <el-avatar :size="26" :src="row.avatarUrl">{{ (row.nickname || '?').slice(0, 1) }}</el-avatar>
+              <el-avatar :size="26" :src="resolveAssetUrl(row.avatarUrl)">{{ (row.nickname || '?').slice(0, 1) }}</el-avatar>
               <span class="nick">{{ row.nickname }}</span>
               <AdminBadge v-if="row.role === 'ADMIN'" />
             </div>
@@ -95,6 +95,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import AdminBadge from '../components/AdminBadge.vue'
 import MiniTag from '../components/MiniTag.vue'
+import { resolveAssetUrl } from '../utils/asset'
 import { apiAdminUserList, apiAdminUserBan, apiAdminUserUnban, apiAdminUserDelete } from '../api/admin'
 
 const rows = ref([])

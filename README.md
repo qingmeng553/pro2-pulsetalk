@@ -140,6 +140,8 @@ MySQL 容器首次启动时会自动执行 `sql/init.sql`：创建 `community_db
 | Redis | `127.0.0.1:6379`（无密码） |
 | MinIO | `127.0.0.1:9000` · minioadmin / minioadmin123 · 桶 `community-upload` |
 
+> 图片统一存相对路径 `/files/...`：开发环境由 Vite 把 `/files` 代理到 MinIO 9000，生产由 Nginx 反代，不再需要配置公网图片地址。
+
 > 使用本机自建 MySQL 时，改该文件的 `spring.datasource.url` 为对应端口，并手动执行 `sql/init.sql`。
 
 ### 2. 启动后端（8085）
@@ -233,7 +235,7 @@ cp deploy/.env.prod.example deploy/.env.prod
 | `MYSQL_ROOT_PASSWORD` | 数据库 root 密码 |
 | `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` | MinIO 账号与密钥 |
 | `REDIS_PASSWORD` | Redis 密码，留空表示不启用 |
-| `MINIO_PUBLIC_ENDPOINT` | 浏览器加载图片的地址，形如 `https://域名/files` 或 `http://公网IP/files` |
+| `MINIO_PUBLIC_ENDPOINT` | 图片地址前缀，默认 `/files`，一般不用改；只有图片要直连其他对象存储域名时才覆盖 |
 
 ### 3. 上传与启动
 
@@ -264,11 +266,11 @@ curl -X POST http://<服务器IP>/api/auth/login \
      -d '{"username":"admin","password":"123456"}'
 ```
 
-浏览器访问 `http://<服务器IP>/`，发帖并上传一张图片，确认图片地址形如 `http://<服务器IP>/files/community-upload/...`。
+浏览器访问 `http://<服务器IP>/`，发帖并上传一张图片，确认图片地址形如 `/files/community-upload/...`（相对路径，浏览器按当前域名解析）。
 
 ### 6. HTTPS
 
-在云控制台申请免费证书并下载 Nginx 版本，将证书挂载到 web 容器，按 `deploy/nginx.prod.conf` 中的注释启用 443 段；同时把 `MINIO_PUBLIC_ENDPOINT` 改为 `https://域名/files`。
+在云控制台申请免费证书并下载 Nginx 版本，将证书挂载到 web 容器，按 `deploy/nginx.prod.conf` 中的注释启用 443 段；图片是相对路径，换 HTTPS 不需要改数据库或 `MINIO_PUBLIC_ENDPOINT`。
 
 ### 7. 版本升级
 
@@ -301,7 +303,7 @@ docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.prod up 
 
 | 现象 | 原因与处理 |
 | --- | --- |
-| 图片打不开 | `MINIO_PUBLIC_ENDPOINT` 仍指向 localhost，改为公网地址后重启 pro2 |
+| 图片打不开 | 检查 Nginx `location /files/` 是否反代到 `minio:9000`；本地开发检查 Vite 的 `/files` 代理与 MinIO 是否启动 |
 | 页面能开、接口 404 | 访问地址应带 `/api`（经 Nginx）；后端未暴露 8085 |
 | 经 `/api` 仍返回「资源不存在」 | Nginx `proxy_pass http://后端:8085/` 结尾缺少 `/`，`/api` 前缀未被剥离 |
 | 容器一直 unhealthy | 查看 `logs mysql`，首次初始化需要 30~60 秒 |
@@ -319,6 +321,7 @@ docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.prod up 
 - 交互调整：以滚动浏览为主，取消榜单排名页，改为「大家都在看」
 - 首页与登录已落地：三栏骨架 + 紧凑信息流 + 关键词搜索 + 移动端底部 Tab；登录/注册弹窗改分段切换（S5/S6）
 - 帖子详情已落地：左正文 + 右互动/评论（960~1279 左栏进抽屉、评论仍在右侧），相关推荐，移动端吸底操作条；点赞红心常显（未点亮描边、点亮实心）（S7）
+- 地址收口：图片统一存相对路径 `/files`（后端 `public-endpoint=/files`，Vite/Nginx 反代），历史绝对地址批量迁移（`sql/upgrade-v5.sql`）（S1）
 - 修复：计数同步每 5 分钟会刷新帖子「编辑于」时间（`sql/upgrade-v5.sql` 去掉 `post.update_time` 的 `ON UPDATE`）
 - 账号体系：邮箱绑定 + 验证码找回密码（与密保双通道）
 - 个人主页：模块开关 / 排序 + 主题装扮（参考 B 站空间与 GitHub Profile）

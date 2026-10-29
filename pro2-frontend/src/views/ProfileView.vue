@@ -13,7 +13,7 @@
     <!-- 用户信息卡片 -->
     <div class="profile-card">
       <div class="avatar-wrap" title="点击更换头像" @click="pickAvatar">
-        <el-avatar :size="92" :src="authState.user?.avatarUrl" class="avatar">
+        <el-avatar :size="92" :src="resolveAssetUrl(authState.user?.avatarUrl)" class="avatar">
           {{ (authState.user?.nickname || 'U').slice(0, 1) }}
         </el-avatar>
         <div class="avatar-mask">
@@ -120,6 +120,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import AdminBadge from '../components/AdminBadge.vue'
 import MiniTag from '../components/MiniTag.vue'
+import { resolveAssetUrl } from '../utils/asset'
 import { authState, resetAuth, refreshUser } from '../store/user'
 import {
   apiUploadAvatar, apiLogout, apiCurrentUser,

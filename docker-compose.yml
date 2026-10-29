@@ -91,9 +91,8 @@ services:
     environment:
       TZ: Asia/Shanghai
       SPRING_PROFILES_ACTIVE: docker   # 激活 application-docker.yml(host=服务名)
-      # 图片对外地址：填入浏览器可访问的地址，形如 http://<公网IP或域名>/files
-      # 可通过项目根目录 .env 覆盖(不写则用默认值)
-      MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-http://localhost:9000}
+      # 图片对外地址：固定用相对路径 /files（浏览器按当前站点域名解析）
+      MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-/files}
       MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin123}

@@ -56,9 +56,9 @@
             v-for="(u, i) in detail.imgUrls"
             :key="u"
             class="gallery-img"
-            :src="u"
+            :src="resolveAssetUrl(u)"
             fit="cover"
-            :preview-src-list="detail.imgUrls"
+            :preview-src-list="galleryPreview"
             :initial-index="i"
             preview-teleported
           />
@@ -113,7 +113,7 @@
         />
 
         <div class="comment-form" :class="{ 'need-login': !isLoggedIn }" @click="focusComment">
-          <el-avatar v-if="isLoggedIn" :size="24" :src="authState.user?.avatarUrl">
+          <el-avatar v-if="isLoggedIn" :size="24" :src="resolveAssetUrl(authState.user?.avatarUrl)">
             {{ (authState.user?.nickname || 'U').slice(0, 1) }}
           </el-avatar>
           <el-input
@@ -229,6 +229,7 @@ import RelatedPosts from '../components/RelatedPosts.vue'
 import HeartIcon from '../components/HeartIcon.vue'
 import UserChip from '../components/UserChip.vue'
 import MiniTag from '../components/MiniTag.vue'
+import { resolveAssetUrl } from '../utils/asset'
 import { apiPostDetail, apiPostList, apiLikePost, apiCollectPost, apiDeletePost, apiAdminDeletePost } from '../api/post'
 import { apiCommentList, apiCreateComment, apiDeleteComment, apiAdminDeleteComment } from '../api/comment'
 import { authState, isLoggedIn, openLoginDialog } from '../store/user'
@@ -243,6 +244,8 @@ const loading = ref(true)
 const edited = computed(
   () => !!detail.value?.updateTime && detail.value.updateTime !== detail.value.createTime
 )
+// 预览列表同样走地址解析（App 壳里需要拼 base）
+const galleryPreview = computed(() => (detail.value?.imgUrls || []).map(resolveAssetUrl))
 
 // 阅读进度
 const readProgress = ref(0)

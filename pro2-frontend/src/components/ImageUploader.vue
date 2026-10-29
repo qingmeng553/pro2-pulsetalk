@@ -3,7 +3,7 @@
   <div class="img-uploader">
     <div class="img-grid">
       <div v-for="(url, i) in modelValue" :key="url" class="img-item">
-        <el-image :src="url" fit="cover" :preview-src-list="modelValue" :initial-index="i" preview-teleported />
+        <el-image :src="resolveAssetUrl(url)" fit="cover" :preview-src-list="previewList" :initial-index="i" preview-teleported />
         <span class="img-del" title="移除" @click.stop="removeAt(i)">
           <el-icon><Close /></el-icon>
         </span>
@@ -25,16 +25,19 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { apiUploadPostImage } from '../api/post'
 import { isLoggedIn, openLoginDialog } from '../store/user'
+import { resolveAssetUrl, resolveAssetList } from '../utils/asset'
 
 const props = defineProps({
   modelValue: { type: Array, default: () => [] },
   max: { type: Number, default: 9 }
 })
 const emit = defineEmits(['update:modelValue'])
+
+const previewList = computed(() => resolveAssetList(props.modelValue))
 
 const fileInput = ref()
 const uploading = ref(false)

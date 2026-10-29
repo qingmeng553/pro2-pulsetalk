@@ -50,7 +50,7 @@
         <template v-if="isLoggedIn">
           <el-dropdown trigger="click" @command="onCommand">
             <span class="user-chip">
-              <el-avatar :size="28" :src="authState.user?.avatarUrl" class="avatar">
+              <el-avatar :size="28" :src="resolveAssetUrl(authState.user?.avatarUrl)" class="avatar">
                 {{ (authState.user?.nickname || 'U').slice(0, 1) }}
               </el-avatar>
               <span class="nick">{{ authState.user?.nickname }}</span>
@@ -97,6 +97,7 @@ import {
 } from '../store/user'
 import { totalBadge, setBadges } from '../store/badge'
 import { uiState } from '../store/ui'
+import { resolveAssetUrl } from '../utils/asset'
 import { apiNotifyUnread } from '../api/notify'
 import { apiChatUnread } from '../api/chat'
 import { apiLogout, apiCurrentUser } from '../api/auth'

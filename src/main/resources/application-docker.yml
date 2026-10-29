@@ -44,10 +44,9 @@ mybatis-plus:
 minio:
   # 容器网络内使用服务名 minio
   endpoint: ${MINIO_ENDPOINT:http://minio:9000}
-  # 浏览器访问图片的地址：
-  #   - 开发编排(开放9000端口)：http://localhost:9000
-  #   - 生产(经 Nginx /files 反代，仅开放80/443)：http://你的域名或公网IP/files
-  public-endpoint: ${MINIO_PUBLIC_ENDPOINT:http://localhost:9000}
+  # 浏览器访问图片的地址：统一用相对路径 /files，由 Nginx(或 Vite dev server)反代到 MinIO。
+  # 这样换域名、上 HTTPS、App 壳都不用改数据库里的图片地址。
+  public-endpoint: ${MINIO_PUBLIC_ENDPOINT:/files}
   access-key: ${MINIO_ACCESS_KEY:minioadmin}
   secret-key: ${MINIO_SECRET_KEY:minioadmin123}
   bucket: community-upload

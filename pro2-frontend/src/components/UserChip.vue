@@ -1,7 +1,7 @@
 <template>
   <!-- 用户小卡片：点头像/昵称即可进入对方主页(了解彼此 + 私聊/加好友/拉黑入口) -->
   <span class="user-chip" :class="{ pointer: !!user?.userId }" @click.stop="go">
-    <el-avatar :size="size" :src="user?.avatarUrl" class="u-avatar">
+    <el-avatar :size="size" :src="resolveAssetUrl(user?.avatarUrl)" class="u-avatar">
       {{ (user?.nickname || '?').slice(0, 1) }}
     </el-avatar>
     <span v-if="showNick" class="u-nick">{{ user?.nickname }}</span>
@@ -12,6 +12,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import AdminBadge from './AdminBadge.vue'
+import { resolveAssetUrl } from '../utils/asset'
 
 const props = defineProps({
   // 用户摘要 {userId, nickname, avatarUrl, role}

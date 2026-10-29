@@ -7,6 +7,7 @@
 import { computed } from 'vue'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
+import { resolveAssetUrl } from '../utils/asset'
 
 const props = defineProps({
   content: { type: String, default: '' }
@@ -22,6 +23,8 @@ const html = computed(() => {
   if (!props.content) return ''
   const raw = marked.parse(props.content) // v12+ 默认返回 string
   // 消毒：移除脚本/事件属性，XSS 防护
-  return DOMPurify.sanitize(raw)
+  const clean = DOMPurify.sanitize(raw)
+  // 正文里的相对图片地址统一交给 resolveAssetUrl（Web 原样，App 壳拼 base）
+  return clean.replace(/src="(\/(?!\/)[^"]*)"/g, (_, p) => `src="${resolveAssetUrl(p)}"`)
 })
 </script>

@@ -3,7 +3,7 @@
   <article class="post-card anim-item" @click="goDetail">
     <!-- 封面(可选) -->
     <div v-if="post.cover" class="cover">
-      <el-image :src="post.cover" fit="cover" lazy />
+      <el-image :src="resolveAssetUrl(post.cover)" fit="cover" lazy />
     </div>
 
     <div class="body">
@@ -46,6 +46,7 @@ import { Delete } from '@element-plus/icons-vue'
 import UserChip from './UserChip.vue'
 import MiniTag from './MiniTag.vue'
 import HeartIcon from './HeartIcon.vue'
+import { resolveAssetUrl } from '../utils/asset'
 import { fromNow, fmtCount } from '../utils/format'
 import { apiAdminDeletePost } from '../api/post'
 

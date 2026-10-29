@@ -31,7 +31,8 @@ spring:
 # ---------------- MinIO(Docker compose, 与容器内凭据一致) ----------------
 minio:
   endpoint: http://127.0.0.1:9000        # SDK 连接地址(后端->MinIO)
-  public-endpoint: http://127.0.0.1:9000  # 返回给浏览器访问的图片地址(公网部署时改为主机外网地址)
+  # 相对路径：图片统一由 /files 反代到 MinIO，换域名/上 HTTPS 都不用改库
+  public-endpoint: /files
   access-key: minioadmin
   secret-key: minioadmin123
   bucket: community-upload                # 桶名称(程序启动自动创建并设置公共读策略)

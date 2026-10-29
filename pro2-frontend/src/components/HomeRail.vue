@@ -9,7 +9,7 @@
 
     <section v-else class="rail-card">
       <div class="rail-user">
-        <el-avatar :size="40" :src="authState.user?.avatarUrl">
+        <el-avatar :size="40" :src="resolveAssetUrl(authState.user?.avatarUrl)">
           {{ (authState.user?.nickname || 'U').slice(0, 1) }}
         </el-avatar>
         <div class="rail-user-main">
@@ -40,6 +40,7 @@
 <script setup>
 import AdminBadge from './AdminBadge.vue'
 import { authState, isLoggedIn, openLoginDialog } from '../store/user'
+import { resolveAssetUrl } from '../utils/asset'
 </script>
 
 <style scoped>

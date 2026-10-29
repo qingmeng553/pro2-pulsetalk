@@ -3,7 +3,7 @@
     <!-- 用户信息卡 -->
     <div class="u-card" v-loading="loading">
       <template v-if="profile">
-        <el-avatar :size="84" :src="profile.avatarUrl" class="big-avatar">
+        <el-avatar :size="84" :src="resolveAssetUrl(profile.avatarUrl)" class="big-avatar">
           {{ (profile.nickname || '?').slice(0, 1) }}
         </el-avatar>
         <h2 class="u-name">
@@ -108,6 +108,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import AdminBadge from '../components/AdminBadge.vue'
 import PostCard from '../components/PostCard.vue'
 import MiniTag from '../components/MiniTag.vue'
+import { resolveAssetUrl } from '../utils/asset'
 import { apiUserProfile, apiUserPosts, apiFriendRequest, apiFriendAccept, apiFriendReject, apiFriendRemove, apiBlacklistAdd, apiBlacklistRemove } from '../api/relation'
 import { isLoggedIn, openLoginDialog } from '../store/user'
 import { formatTime } from '../utils/format'
