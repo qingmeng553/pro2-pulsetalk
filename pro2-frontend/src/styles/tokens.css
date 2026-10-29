@@ -70,6 +70,10 @@
     'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'JetBrains Mono', Consolas, 'Courier New', monospace;
 
+  /* 代码块（Markdown 正文内） */
+  --code-bg: #0f172a;
+  --code-fg: #e2e8f0;
+
   --fs-xs: 12px;                  /* 辅助、时间、计数 */
   --fs-sm: 14px;                  /* 次要正文、表单 */
   --fs-md: 16px;                  /* 正文 */

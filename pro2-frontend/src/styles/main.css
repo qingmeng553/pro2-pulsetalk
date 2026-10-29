@@ -1,15 +1,18 @@
-:root {
-  --brand: #5b7cfa;
-  --brand-dark: #4a68e0;
-  --brand-gradient: linear-gradient(135deg, #5b7cfa 0%, #8b5cf6 100%);
-  --bg: #f4f6fb;
-  --card: #ffffff;
-  --text: #2b3350;
-  --text-sub: #7a8299;
-  --border: #e8ebf4;
-  --danger: #f56c6c;
-  --warn: #e6a23c;
-}
+/* ============================================================================
+ * PulseTalk 1.1.0 · 全局基础样式
+ * ----------------------------------------------------------------------------
+ * 约定（十条约法）：
+ *   1. 颜色/字号/间距/圆角/阴影只取 tokens.css 的变量，禁止写死；
+ *   2. 禁止彩色渐变（唯一允许：--grad-subtle）；
+ *   3. 卡片 = 1px 边框，不加阴影；
+ *   4. 圆角只有：0（图标）/ 6（控件）/ 10（容器）/ 999（胶囊）/ 50%（圆形）；
+ *   5. 字号只有：12 / 14 / 16 / 20 / 28；
+ *   6. 动效只有两种：入场 fadeUp、点赞 popIn；禁止常驻循环动画；
+ *   7. 图片不做 hover 缩放；
+ *   8. 按钮 hover 不加彩色阴影、不做缩放；
+ *   9. 每个可交互元素必须有 focus-visible 轮廓（见 element-override.css）；
+ *  10. 正文行高 1.6。
+ * ========================================================================== */
 
 * {
   box-sizing: border-box;
@@ -19,251 +22,272 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  color: var(--text-primary);
+}
+
+p {
+  margin: 0 0 var(--sp-3);
 }
 
 a {
-  color: var(--brand);
+  color: var(--text-link);
   text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+a:hover {
+  color: var(--c-primary-hover);
+}
+
+img {
+  max-width: 100%;
+  display: block;
 }
 
 /* ---------- 通用布局 ---------- */
 .page-container {
   max-width: 1080px;
   margin: 0 auto;
-  padding: 20px 16px 60px;
+  padding: var(--sp-5) var(--sp-4) var(--sp-12);
 }
 
+/* 分区面（左栏 / 右栏 / 卡片内分区） */
+.surface-subtle {
+  background: var(--bg-subtle);
+}
+
+/* 容器面（卡片） */
+.surface-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-md);
+}
+
+/* ---------- 区块标题 ---------- */
 .section-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 18px;
-  font-weight: 700;
-  margin: 4px 0 16px;
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-4);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
 }
 
 .section-title::before {
   content: '';
-  width: 4px;
-  height: 18px;
-  border-radius: 2px;
-  background: var(--brand-gradient);
+  width: 3px;
+  height: 16px;
+  border-radius: var(--r-pill);
+  background: var(--c-primary);   /* 纯色，不再用渐变 */
 }
 
-/* ---------- 管理员盾牌徽章 ---------- */
+/* ---------- 管理员徽章 ---------- */
 .admin-badge {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  margin-left: 5px;
+  margin-left: var(--sp-1);
   padding: 1px 7px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 16px;
-  color: #fff;
-  background: var(--brand-gradient);
-  border-radius: 10px;
+  color: var(--text-inverse);
+  background: var(--c-primary);   /* 纯色 */
+  border-radius: var(--r-pill);
   vertical-align: 1px;
 }
 
-/* ---------- 角色(游客置灰) ---------- */
+/* ---------- 游客态（需要登录） ---------- */
 .need-login {
   cursor: pointer;
-  transition: opacity 0.2s;
 }
+
 .need-login:hover {
-  opacity: 1;
+  color: var(--c-primary);
 }
 
 /* ---------- 空状态 ---------- */
 .empty-tip {
+  padding: var(--sp-10) 0;
   text-align: center;
-  color: var(--text-sub);
-  padding: 48px 0;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
 }
 
-/* ---------- markdown 正文 ---------- */
+/* ---------- Markdown 正文 ---------- */
 .markdown-body {
-  line-height: 1.75;
+  font-size: var(--fs-md);        /* 正文一级：16px */
+  line-height: var(--lh-normal);  /* 1.6 */
+  color: var(--text-body);
   word-break: break-word;
-  font-size: 15px;
-  color: #333a4f;
 }
-.markdown-body h1, .markdown-body h2, .markdown-body h3 {
-  margin: 18px 0 10px;
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  margin: var(--sp-6) 0 var(--sp-3);
+  color: var(--text-primary);
 }
+
+.markdown-body h1 { font-size: var(--fs-xl); }
+.markdown-body h2 { font-size: var(--fs-lg); }
+.markdown-body h3 { font-size: var(--fs-md); }
+
+.markdown-body p {
+  margin: 0 0 var(--sp-3);
+}
+
 .markdown-body pre {
-  background: #0f172a;
-  color: #e2e8f0;
-  padding: 14px 16px;
-  border-radius: 10px;
+  margin: 0 0 var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--code-bg);
+  color: var(--code-fg);
+  border-radius: var(--r-sm);
   overflow: auto;
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
+  line-height: 1.55;
 }
+
 .markdown-body code {
-  background: #eef1f8;
   padding: 2px 6px;
-  border-radius: 5px;
-  font-size: 13px;
-  font-family: Consolas, 'Courier New', monospace;
+  background: var(--c-100);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+  font-family: var(--font-mono);
 }
+
 .markdown-body pre code {
+  padding: 0;
   background: transparent;
   color: inherit;
-  padding: 0;
 }
+
 .markdown-body blockquote {
-  margin: 10px 0;
-  padding: 4px 14px;
-  border-left: 4px solid var(--brand);
-  background: #f0f3ff;
-  color: var(--text-sub);
-  border-radius: 0 8px 8px 0;
+  margin: 0 0 var(--sp-4);
+  padding: var(--sp-1) var(--sp-4);
+  border-left: 3px solid var(--c-primary);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: var(--c-50);
+  color: var(--text-secondary);
 }
+
+.markdown-body ul,
+.markdown-body ol {
+  margin: 0 0 var(--sp-3);
+  padding-left: var(--sp-6);
+}
+
 .markdown-body img {
-  max-width: 100%;
-  border-radius: 8px;
+  margin: var(--sp-3) 0;
+  border-radius: var(--r-sm);
 }
+
 .markdown-body table {
+  margin: 0 0 var(--sp-4);
   border-collapse: collapse;
 }
-.markdown-body th, .markdown-body td {
-  border: 1px solid var(--border);
+
+.markdown-body th,
+.markdown-body td {
   padding: 6px 10px;
+  border: 1px solid var(--border-color);
 }
-.markdown-body ul, .markdown-body ol {
-  padding-left: 22px;
-}
+
 .markdown-body a {
-  color: var(--brand);
+  color: var(--text-link);
 }
 
-/* ---------- Element 细调 ---------- */
-.el-button--primary {
-  --el-button-bg-color: var(--brand);
-  --el-button-border-color: var(--brand);
-  --el-button-hover-bg-color: var(--brand-dark);
-  --el-button-hover-border-color: var(--brand-dark);
-  --el-button-active-bg-color: var(--brand-dark);
-  --el-button-active-border-color: var(--brand-dark);
-}
-
-/* ---------- 动效 ---------- */
+/* ---------- 动效（只两种） ---------- */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
 }
+
 @keyframes popIn {
-  0% { transform: scale(1); }
-  45% { transform: scale(1.28); }
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.15); }
   100% { transform: scale(1); }
 }
-@keyframes floatY {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
 
-.el-button {
-  transition: transform 0.16s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-}
-.el-button:active {
-  transform: scale(0.97);
-}
-.el-button:hover {
-  box-shadow: 0 4px 14px rgba(91, 124, 250, 0.18);
-}
-
-.empty-tip {
-  animation: fadeUp 0.4s ease both;
-}
+/* 入场：列表项与空状态，只播一次 */
 .msg-row,
 .comment-item,
-.rank-row {
-  animation: fadeUp 0.28s ease both;
+.rank-row,
+.empty-tip {
+  animation: fadeUp var(--dur-base) var(--ease-out) both;
 }
 
-/* 点赞 / 收藏选中时弹一下 */
+/* 点赞/收藏点亮时弹一下（唯一允许的强调动效） */
 .action-btn.active {
-  animation: popIn 0.36s ease;
-}
-/* 榜单前三名浮动 */
-.rank-row:nth-child(-n + 3) .rank-no {
-  animation: floatY 2.6s ease-in-out infinite;
-}
-/* 未读红点浮动 */
-.nav-dot,
-.t-dot,
-.n-dot {
-  animation: floatY 2.4s ease-in-out infinite;
-}
-/* 卡片标题与图片过渡 */
-.post-card .title {
-  transition: color 0.18s ease;
-}
-.post-card:hover .title {
-  color: var(--brand);
-}
-.gallery-img {
-  transition: transform 0.25s ease;
-}
-.gallery-img:hover {
-  transform: scale(1.03);
-}
-/* 列表项点击反馈 */
-.cat-chip:active,
-.t-item:active,
-.n-item:active,
-.rank-row:active {
-  transform: scale(0.99);
+  animation: popIn var(--dur-fast) var(--ease-out);
 }
 
+/* 尊重系统"减少动态效果"设置 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 
 /* ============================================================
-   移动端适配(手机浏览器)
-   - 收紧容器内边距、字号与点击区域
-   - 表格/长内容允许横向滚动，避免页面被撑破
-   - 弹窗、分页、markdown 正文自适应
+   移动端适配
+   - 收紧内边距
+   - 弹窗留边
+   - 长内容可横向滚动，避免撑破页面
    ============================================================ */
 @media (max-width: 768px) {
   html {
     -webkit-text-size-adjust: 100%;
   }
+
   .page-container {
-    padding: 12px 12px 48px;
+    padding: var(--sp-3) var(--sp-3) var(--sp-10);
   }
+
   .section-title {
-    font-size: 16px;
-    margin: 2px 0 12px;
+    font-size: var(--fs-sm);
+    margin-bottom: var(--sp-3);
   }
+
   .empty-tip {
-    padding: 32px 0;
+    padding: var(--sp-8) 0;
   }
-  /* 弹窗在手机上留出边距 */
+
   .el-dialog {
     width: 92% !important;
     margin-top: 8vh !important;
   }
+
   .el-pagination {
     flex-wrap: wrap;
     justify-content: center;
   }
-  .el-table {
-    font-size: 13px;
-  }
-  .markdown-body {
-    font-size: 14.5px;
-  }
+
   .markdown-body pre {
-    font-size: 12.5px;
-    padding: 10px 12px;
+    padding: var(--sp-2) var(--sp-3);
+    font-size: var(--fs-xs);
   }
 }
 
 @media (max-width: 420px) {
   .page-container {
-    padding: 10px 10px 44px;
+    padding: var(--sp-2) var(--sp-2) var(--sp-10);
   }
 }
-
