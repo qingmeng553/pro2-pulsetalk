@@ -20,4 +20,9 @@ public interface MinioFileService {
      * @return 可访问的图片 URL
      */
     String uploadPostImage(MultipartFile file);
+
+    /**
+     * 上传主页图片（头图 / 作品封面 / 图集）
+     */
+    String uploadProfileImage(MultipartFile file);
 }

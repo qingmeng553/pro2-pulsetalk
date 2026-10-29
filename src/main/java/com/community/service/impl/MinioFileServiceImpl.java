@@ -31,6 +31,8 @@ public class MinioFileServiceImpl implements MinioFileService {
     private static final String AVATAR_DIR = "avatars";
     /** 帖子配图目录 */
     private static final String POST_IMAGE_DIR = "post-images";
+    /** 主页图片目录 */
+    private static final String PROFILE_IMAGE_DIR = "profile-images";
 
     private final MinioClient minioClient;
     private final MinioProperties properties;
@@ -46,6 +48,11 @@ public class MinioFileServiceImpl implements MinioFileService {
     @Override
     public String uploadPostImage(MultipartFile file) {
         return doUpload(file, POST_IMAGE_DIR);
+    }
+
+    @Override
+    public String uploadProfileImage(MultipartFile file) {
+        return doUpload(file, PROFILE_IMAGE_DIR);
     }
 
     /**

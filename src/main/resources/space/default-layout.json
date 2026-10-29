@@ -1,0 +1,21 @@
+{
+  "v": 2,
+  "theme": {
+    "pack": "minimal-blue",
+    "header": null,
+    "cardStyle": "border",
+    "widget": "none",
+    "accent": "#2563eb"
+  },
+  "modules": [
+    { "type": "bio",       "order": 1, "visible": true, "width": "full", "data": { "intro": "" } },
+    { "type": "pinned",    "order": 2, "visible": true, "width": "full", "data": { "postId": null } },
+    { "type": "skills",    "order": 3, "visible": true, "width": "half", "data": [] },
+    { "type": "projects",  "order": 4, "visible": true, "width": "full", "data": [] },
+    { "type": "gallery",   "order": 5, "visible": true, "width": "full", "data": [] },
+    { "type": "links",     "order": 6, "visible": true, "width": "half", "data": [] },
+    { "type": "posts",     "order": 7, "visible": true, "width": "full" },
+    { "type": "stats",     "order": 8, "visible": true, "width": "half" },
+    { "type": "guestbook", "order": 9, "visible": true, "width": "full" }
+  ]
+}

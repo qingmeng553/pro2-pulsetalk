@@ -43,6 +43,12 @@ public class SysUser implements Serializable {
     /** 邮箱是否已验证 0未验证 / 1已验证 */
     private Integer emailVerified;
 
+    /** 主页布局 schema(JSON 字符串，beta1) */
+    private String profileLayout;
+
+    /** 主页布局乐观锁版本 */
+    private Integer profileVersion;
+
     /** 密保问题(v3)：由用户自行设置 */
     private String securityQuestion;
 

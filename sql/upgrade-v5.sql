@@ -68,3 +68,46 @@ ALTER TABLE sys_user
     ADD COLUMN email VARCHAR(128) DEFAULT NULL COMMENT '绑定邮箱',
     ADD COLUMN email_verified TINYINT NOT NULL DEFAULT 0 COMMENT '0未验证/1已验证',
     ADD UNIQUE KEY uk_email (email);
+
+-- ---------------------------------------------------------------------------
+-- beta1：可配置个人主页
+-- ---------------------------------------------------------------------------
+ALTER TABLE sys_user
+    ADD COLUMN profile_layout JSON DEFAULT NULL COMMENT '主页布局 schema',
+    ADD COLUMN profile_version INT NOT NULL DEFAULT 0 COMMENT '主页布局乐观锁版本';
+
+CREATE TABLE IF NOT EXISTS user_guestbook (
+    id           BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+    owner_id     BIGINT       NOT NULL COMMENT '主页主人',
+    from_user_id BIGINT       NOT NULL COMMENT '留言人',
+    content      VARCHAR(200) NOT NULL COMMENT '留言内容',
+    is_deleted   TINYINT      NOT NULL DEFAULT 0 COMMENT '逻辑删除',
+    create_time  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_owner (owner_id, create_time)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '主页留言板';
+
+CREATE TABLE IF NOT EXISTS profile_report (
+    id             BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+    target_user_id BIGINT       NOT NULL COMMENT '被举报主页',
+    reporter_id    BIGINT       NOT NULL COMMENT '举报人',
+    module_type    VARCHAR(20)  NOT NULL COMMENT '模块类型(profile=整页)',
+    reason         VARCHAR(200) NOT NULL COMMENT '举报原因',
+    status         TINYINT      NOT NULL DEFAULT 0 COMMENT '0待处理/1已处理',
+    handle_by      BIGINT       DEFAULT NULL COMMENT '处理管理员',
+    handle_time    DATETIME     DEFAULT NULL COMMENT '处理时间',
+    create_time    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_status (status, create_time)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '主页举报';
+
+CREATE TABLE IF NOT EXISTS profile_hidden_module (
+    id          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+    user_id     BIGINT       NOT NULL COMMENT '主页主人',
+    module_type VARCHAR(20)  NOT NULL COMMENT '被隐藏模块',
+    hidden_by   BIGINT       NOT NULL COMMENT '操作管理员',
+    reason      VARCHAR(200) DEFAULT NULL COMMENT '原因',
+    create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_user_module (user_id, module_type)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '管理员隐藏的主页模块';

@@ -134,4 +134,26 @@ public final class RedisKeys {
     public static String verifyFailKey(String scene, String email) {
         return "community:verify:fail:" + scene + ":" + email;
     }
+
+    // ---- beta1：主页 ----
+
+    /** 主页访问量 */
+    public static String profileViewKey(long userId) {
+        return "community:profile:view:" + userId;
+    }
+
+    /** 主页访问量去重(同 IP 5 分钟) */
+    public static String profileViewDedupeKey(long userId, String ip) {
+        return "community:profile:view:dedupe:" + userId + ":" + ip;
+    }
+
+    /** 留言限流(每人 1 分钟 1 条) */
+    public static String guestbookLimitKey(long userId) {
+        return "community:limit:guestbook:" + userId;
+    }
+
+    /** 举报限流(每人 1 分钟 1 条) */
+    public static String reportLimitKey(long userId) {
+        return "community:limit:report:" + userId;
+    }
 }
