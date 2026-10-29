@@ -83,7 +83,7 @@ CREATE TABLE post (
     collect_count INT          NOT NULL DEFAULT 0 COMMENT '收藏数(每5分钟由Redis同步)',
     is_deleted    TINYINT      NOT NULL DEFAULT 0 COMMENT '逻辑删除: 0未删/1已删',
     create_time   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    update_time   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    update_time   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间(仅内容编辑时由应用写入)',
     PRIMARY KEY (id),
     KEY idx_user (user_id),
     KEY idx_category (category_id),

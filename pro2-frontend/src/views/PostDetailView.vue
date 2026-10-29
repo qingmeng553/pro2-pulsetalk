@@ -21,6 +21,7 @@
             <MiniTag :text="detail.categoryName || '综合'" tone="primary" />
             <span class="meta-text">发布于 {{ formatTime(detail.createTime) }}</span>
             <span v-if="edited" class="meta-text">编辑于 {{ formatTime(detail.updateTime) }}</span>
+            <span class="meta-text meta-mobile">{{ detail.viewCount || 0 }} 次浏览 · {{ commentTotal }} 条评论</span>
           </div>
 
           <h1 class="title">{{ detail.title }}</h1>
@@ -75,8 +76,8 @@
       <el-empty v-else-if="!loading" description="帖子不存在或已被删除" />
     </main>
 
-    <!-- 右栏：互动 + 评论 -->
-    <aside v-if="detail" id="comments" class="detail-side">
+    <!-- 右栏：互动 + 评论；移动端只留评论，互动交给吸底条 -->
+    <aside v-if="detail" class="detail-side">
       <section class="side-card interact-card">
         <div class="interact-grid">
           <button class="interact-btn" :class="{ active: detail.liked }" @click="onLike">
@@ -96,7 +97,7 @@
         </div>
       </section>
 
-      <section class="side-card comment-card">
+      <section id="comments" class="side-card comment-card">
         <div class="comment-head-row">
           <h3 class="side-title">评论</h3>
           <span class="side-count">{{ commentTotal }}</span>
@@ -563,6 +564,11 @@ onBeforeUnmount(() => {
   color: var(--text-tertiary);
 }
 
+/* 移动端隐藏互动卡后，用这一行保留浏览/评论数 */
+.meta-mobile {
+  display: none;
+}
+
 .title {
   margin: var(--sp-3) 0 var(--sp-4);
   font-size: var(--fs-xl);
@@ -667,6 +673,7 @@ onBeforeUnmount(() => {
 .interact-icon {
   width: 20px;
   height: 20px;
+  color: var(--c-like);
 }
 
 .interact-btn.collect.active {
@@ -695,6 +702,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  scroll-margin-top: calc(var(--header-h) + var(--sp-2));
 }
 
 .comment-head-row {
@@ -834,6 +842,24 @@ onBeforeUnmount(() => {
 
   .detail-side {
     grid-column: auto;
+  }
+
+  /* 移动端：互动交给吸底条，评论直接贴正文 */
+  .interact-card {
+    display: none;
+  }
+
+  .meta-mobile {
+    display: inline;
+  }
+
+  .gallery-img:only-child {
+    grid-column: 1 / -1;
+    height: 220px;
+  }
+
+  .mobile-actions .bar-icon {
+    color: var(--c-like);
   }
 
   .article-card,

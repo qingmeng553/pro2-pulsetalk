@@ -148,6 +148,7 @@ async function askAdminDelete() {
 .stat-icon {
   width: 12px;
   height: 12px;
+  color: var(--c-like);
 }
 
 .row-del {

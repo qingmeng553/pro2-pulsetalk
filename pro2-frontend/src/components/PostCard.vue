@@ -180,6 +180,7 @@ async function askAdminDelete() {
 .stat-icon {
   width: 12px;
   height: 12px;
+  color: var(--c-like);
 }
 /* 悬浮细节：封面渐变遮罩 + 统计图标弹跳 */
 .cover {
