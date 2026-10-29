@@ -1,5 +1,5 @@
 <template>
-  <div class="space-editor">
+  <div class="space-editor" @input="syncPreview" @change="syncPreview">
     <!-- 顶栏 -->
     <div class="ed-top">
       <div>
@@ -327,7 +327,14 @@ async function onFile(event) {
 
 function syncPreview() {
   if (!draft.value) return
-  const payload = { type: 'space-draft', layout: draft.value }
+  let layout
+  try {
+    // 不能直接 postMessage(reactive proxy)：结构化克隆会得到空对象，预览永远不更新
+    layout = JSON.parse(JSON.stringify(draft.value))
+  } catch (e) {
+    return
+  }
+  const payload = { type: 'space-draft', layout }
   webFrame.value?.contentWindow?.postMessage(payload, window.location.origin)
   appFrame.value?.contentWindow?.postMessage(payload, window.location.origin)
 }

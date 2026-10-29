@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/app")
 public class AppVersionController {
 
-    @Value("${app.version.latest:1.2.0-alpha.1}")
+    @Value("${app.version.latest:1.1.0}")
     private String latestVersion;
 
     @Value("${app.version.min:1.0.0}")
     private String minVersion;
 
-    @Value("${app.version.url:/download/pulsetalk-1.2.0-alpha.1.apk}")
+    @Value("${app.version.url:/download/pulsetalk-1.1.0.apk}")
     private String updateUrl;
 
     @Value("${app.version.notes:}")

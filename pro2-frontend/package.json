@@ -1,7 +1,7 @@
 {
   "name": "pro2-frontend",
   "private": true,
-  "version": "1.2.0-alpha.1",
+  "version": "1.1.0",
   "description": "点评贴吧社区前端 (Vue3 + Vite + Element-Plus + ECharts + D3)",
   "type": "module",
   "scripts": {

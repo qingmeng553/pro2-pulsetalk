@@ -47,8 +47,8 @@ sa-token:
 # ---------------- App 版本 / 下载 ----------------
 app:
   version:
-    latest: ${APP_VERSION_LATEST:1.2.0-alpha.1}
+    latest: ${APP_VERSION_LATEST:1.1.0}
     min: ${APP_VERSION_MIN:1.0.0}
-    url: ${APP_VERSION_URL:/download/pulsetalk-1.2.0-alpha.1.apk}
+    url: ${APP_VERSION_URL:/download/pulsetalk-1.1.0.apk}
     notes: ${APP_VERSION_NOTES:首个 Android 测试版：Capacitor 壳、全部 Web 功能、相机/相册、分享、下载更新检查}
   # 说明：sa-token-redis-jackson 已自动将会话(SaSession/token)持久化到 Redis

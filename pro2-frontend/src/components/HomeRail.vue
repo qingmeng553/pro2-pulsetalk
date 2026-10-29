@@ -25,14 +25,21 @@
 
     <section class="rail-card">
       <h3 class="rail-title">PulseTalk App</h3>
-      <p class="rail-text">Android 1.2.0-alpha.1 · 全功能对齐，APK 直接安装。</p>
+      <p class="rail-text">Android 1.1.0 · 全功能对齐，APK 直接安装。</p>
       <el-button type="primary" class="rail-btn" @click="$router.push('/app')">下载 Android 版</el-button>
     </section>
 
     <section class="rail-card">
-      <h3 class="rail-title">绑定邮箱</h3>
-      <p class="rail-text">绑定后可用邮箱验证码找回密码，和密保问题互为兜底。</p>
-      <el-tag size="small" type="info" effect="plain">alpha2 开放</el-tag>
+      <h3 class="rail-title">邮箱找回</h3>
+      <p class="rail-text">绑定后可用邮箱验证码找回密码；未绑定邮箱的账号只能联系管理员重置。</p>
+      <template v-if="isLoggedIn">
+        <el-tag v-if="authState.user?.email" type="success" effect="plain">
+          已绑定 {{ maskEmail(authState.user.email) }}
+        </el-tag>
+        <el-button v-else class="rail-btn" @click="$router.push('/profile')">去绑定邮箱</el-button>
+        <router-link v-if="authState.user?.email" to="/profile" class="rail-link">管理邮箱</router-link>
+      </template>
+      <el-button v-else class="rail-btn" @click="openLoginDialog()">登录后绑定</el-button>
     </section>
   </aside>
 </template>
@@ -41,6 +48,13 @@
 import AdminBadge from './AdminBadge.vue'
 import { authState, isLoggedIn, openLoginDialog } from '../store/user'
 import { resolveAssetUrl } from '../utils/asset'
+
+function maskEmail(email) {
+  const value = String(email || '')
+  const at = value.indexOf('@')
+  if (at <= 0) return value
+  return `${value.charAt(0)}***${value.slice(at)}`
+}
 </script>
 
 <style scoped>

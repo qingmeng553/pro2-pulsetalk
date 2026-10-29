@@ -17,12 +17,11 @@
         </div>
 
         <p class="hero-meta">
-          版本 {{ version.latestVersion || '1.2.0-alpha.1' }}
+          版本 {{ version.latestVersion || '1.1.0' }}
           <span class="dot">·</span> Android 8.0+
           <span class="dot">·</span> 约 3.8MB
           <span class="dot">·</span> 无需应用商店
-        </p>
-        <p v-if="isApp()" class="in-app-tip">你正在 App 内浏览，可把链接发给朋友。</p>
+        </p>        <p v-if="isApp()" class="in-app-tip">你正在 App 内浏览，可把链接发给朋友。</p>
       </div>
 
       <div class="phone" aria-hidden="true">
@@ -64,11 +63,11 @@
     <section class="install-card">
       <h2>安装说明</h2>
       <ol>
-        <li>点击「下载 Android 版」，浏览器会下载 <code>pulsetalk-{{ version.latestVersion || '1.2.0-alpha.1' }}.apk</code>。</li>
+        <li>点击「下载 Android 版」，浏览器会下载 <code>pulsetalk-{{ version.latestVersion || '1.1.0' }}.apk</code>。</li>
         <li>首次安装时，系统可能提示“禁止安装未知来源应用”，在设置里允许当前浏览器安装即可。</li>
         <li>安装完成用现有账号登录；如果提示版本过低，回到本页下载最新包覆盖安装。</li>
       </ol>
-      <p class="install-note">当前仅提供 Android APK；iOS 需要开发者账号与 TestFlight，本期不做。</p>
+      <p class="install-note">当前仅提供 Android APK，安装包会随版本更新。</p>
     </section>
   </div>
 </template>
@@ -88,7 +87,7 @@ const version = reactive({
 })
 
 const apkUrl = computed(() => {
-  const url = version.updateUrl || '/download/pulsetalk-1.2.0-alpha.1.apk'
+  const url = version.updateUrl || '/download/pulsetalk-1.1.0.apk'
   if (/^https?:\/\//i.test(url)) return url
   return `${APP_ORIGIN}${url.startsWith('/') ? '' : '/'}${url}`
 })

@@ -161,7 +161,7 @@ MySQL 容器首次启动时会自动执行 `sql/init.sql`：创建 `community_db
 mvn spring-boot:run
 # 或先打包再运行
 mvn clean install -DskipTests
-java -jar target/pro2-1.2.0-alpha.1.jar
+java -jar target/pro2-1.1.0.jar
 ```
 
 启动成功日志包含：Sa-Token 会话持久层使用 Redis、MinIO 桶初始化完成、`PulseTalk 社区后端启动成功`。存活探测：`curl http://localhost:8085/demo/ping`。
@@ -209,7 +209,7 @@ cd android
 ./gradlew assembleRelease  # 需要 Android SDK 34 + JDK 17
 ```
 
-- 包名：`com.qingmeng553.pulsetalk`，版本 `1.2.0-alpha.1`
+- 包名：`com.qingmeng553.pulsetalk`，版本 `1.1.0`
 - release 签名读取 `android/keystore.properties`（本机文件，不入库）
 - 产物：`android/app/build/outputs/apk/release/app-release.apk`
 - 下载页：`/app`；版本检查：`GET /api/app/version`
@@ -249,7 +249,7 @@ cd android
 ### 1. 构建
 
 ```bash
-mvn clean install -DskipTests                 # 产物 target/pro2-1.2.0-alpha.1.jar
+mvn clean install -DskipTests                 # 产物 target/pro2-1.1.0.jar
 cd pro2-frontend && npm run build && cd ..    # 产物 pro2-frontend/dist
 cp -r pro2-frontend/dist/* deploy/www/        # 前端产物放入挂载目录
 ```
@@ -273,7 +273,7 @@ cp deploy/.env.prod.example deploy/.env.prod
 ```bash
 # 上传项目（Dockerfile、compose、sql、src、deploy 均为必需；jar 与 dist 为构建产物）
 scp -r pom.xml Dockerfile docker-compose.yml sql src deploy root@<服务器IP>:/opt/pulsetalk/
-scp target/pro2-1.2.0-alpha.1.jar root@<服务器IP>:/opt/pulsetalk/target/
+scp target/pro2-1.1.0.jar root@<服务器IP>:/opt/pulsetalk/target/
 
 # 启动
 docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.prod up -d --build
@@ -346,13 +346,11 @@ docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.prod up 
 
 ## 更新记录
 
-### v1.2.0-alpha.1
+### v1.1.0（已上线）
 - Android App（Capacitor 6 壳）：复用全部 Web 功能，支持系统相机/相册、系统分享、状态栏、返回键与启动图
-- 新增 `/app` 下载页、`GET /app/version` 版本检查、APK 侧载下载（`/download/pulsetalk-1.2.0-alpha.1.apk`）
+- 新增 `/app` 下载页、`GET /app/version` 版本检查、APK 侧载下载（`/download/pulsetalk-1.1.0.apk`）
 - App 内接口与图片资源自动切到 `http://qingmeng553.xyz`；Android 明文流量仅放行本域
 - 修复发帖页正文编辑器被 flex 压扁（文本框仅约 140px 宽）的布局问题
-
-### v1.1.0（已上线）
 - 界面体系重构：统一设计 Token（颜色 / 字号 / 间距 / 圆角 / 阴影 / 动效），去除渐变与彩色阴影
 - 布局重构：三栏骨架（左侧导航 + 中间信息流 + 右侧活动位），帖子详情改为「左正文 + 右互动」
 - 交互调整：以滚动浏览为主，取消榜单排名页，改为「大家都在看」
@@ -364,7 +362,7 @@ docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.prod up 
 - 修复：计数同步每 5 分钟会刷新帖子「编辑于」时间（`sql/upgrade-v5.sql` 去掉 `post.update_time` 的 `ON UPDATE`）
 - 账号体系：邮箱绑定 + 验证码找回密码（与密保双通道）
 - 个人主页：模块开关 / 排序 + 主题装扮（参考 B 站空间与 GitHub Profile）
-- 多端：Capacitor 壳的移动 App（1.2.0 起全功能对齐）
+- 多端：Capacitor 壳的移动 App（1.1.0 起全功能对齐）
 
 ### v1.0.3
 - 注册成功后自动登录；登录状态即时生效，无需刷新页面
