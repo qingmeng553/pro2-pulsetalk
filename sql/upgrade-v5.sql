@@ -59,3 +59,12 @@ WHERE avatar_url LIKE '%http://127.0.0.1:9000%'
    OR avatar_url LIKE '%http://121.43.252.96/files%'
    OR avatar_url LIKE '%http://qingmeng553.com/files%'
    OR avatar_url LIKE '%https://qingmeng553.com/files%';
+
+-- ---------------------------------------------------------------------------
+-- alpha2：邮箱绑定与找回
+-- 老用户 email 为 NULL；MySQL 唯一索引允许多个 NULL
+-- ---------------------------------------------------------------------------
+ALTER TABLE sys_user
+    ADD COLUMN email VARCHAR(128) DEFAULT NULL COMMENT '绑定邮箱',
+    ADD COLUMN email_verified TINYINT NOT NULL DEFAULT 0 COMMENT '0未验证/1已验证',
+    ADD UNIQUE KEY uk_email (email);

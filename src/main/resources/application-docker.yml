@@ -35,6 +35,32 @@ spring:
           max-idle: 8
           min-idle: 0
 
+  # 邮件：生产用 163 SMTP（465/SSL），本地 docker 编排可指向 mailhog
+  #   MAIL_HOST / MAIL_PORT / MAIL_USERNAME / MAIL_PASSWORD / MAIL_FROM
+  #   MAIL_SMTP_AUTH / MAIL_SMTP_SSL / MAIL_SMTP_STARTTLS
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:false}
+          ssl:
+            enable: ${MAIL_SMTP_SSL:false}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS:false}
+
+# 生产在 Nginx 之后，取真实客户端 IP（限流用）
+server:
+  forward-headers-strategy: framework
+
+app:
+  mail:
+    from: ${MAIL_FROM:PulseTalk <no-reply@pulsetalk.local>}
+
 # 生产环境不打印 SQL(本地开发由 application.yml 的 stdout 覆盖)
 mybatis-plus:
   configuration:

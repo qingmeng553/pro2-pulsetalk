@@ -41,6 +41,12 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- 邮件：邮箱验证码 / 安全通知（开发用 MailHog，生产 163 SMTP） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- ===================== Redis(Spring Data Redis + Lettuce) ===================== -->
         <!-- Sa-Token 的 Redis 会话存储需要 Spring Data Redis 提供 RedisConnectionFactory -->
         <dependency>

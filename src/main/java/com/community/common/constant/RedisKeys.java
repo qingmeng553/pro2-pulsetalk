@@ -97,4 +97,41 @@ public final class RedisKeys {
     public static String forgotResetLimitKey(String username) {
         return "community:limit:forgot:reset:" + username;
     }
+
+    // ---- alpha2：验证码 / 图形码 ----
+
+    /** 图形验证码(一次性，2 分钟) */
+    public static String captchaKey(String captchaId) {
+        return "community:captcha:" + captchaId;
+    }
+
+    /** 图形码按 IP 生成频率(防刷) */
+    public static String captchaIpLimitKey(String ip) {
+        return "community:limit:captcha:ip:" + ip;
+    }
+
+    /** 邮箱验证码(一次性，5 分钟) */
+    public static String verifyCodeKey(String scene, String email) {
+        return "community:verify:code:" + scene + ":" + email;
+    }
+
+    /** 同邮箱同场景发送间隔(60s) */
+    public static String verifySendKey(String scene, String email) {
+        return "community:verify:send:" + scene + ":" + email;
+    }
+
+    /** 同邮箱每日发送上限 */
+    public static String verifyQuotaKey(String email, String day) {
+        return "community:verify:quota:" + email + ":" + day;
+    }
+
+    /** 同 IP 每小时发送上限 */
+    public static String verifyIpKey(String ip, String hour) {
+        return "community:verify:ip:" + ip + ":" + hour;
+    }
+
+    /** 验证码错误次数(5 次锁定 5 分钟) */
+    public static String verifyFailKey(String scene, String email) {
+        return "community:verify:fail:" + scene + ":" + email;
+    }
 }

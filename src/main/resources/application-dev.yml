@@ -28,6 +28,22 @@ spring:
           max-idle: 8
           min-idle: 0
 
+  # 本地邮件：MailHog（docker compose up -d mailhog），收件箱 http://localhost:8025
+  mail:
+    host: 127.0.0.1
+    port: 1025
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+# 发件人（本地任意地址，MailHog 不校验）
+app:
+  mail:
+    from: PulseTalk <no-reply@pulsetalk.local>
+
 # ---------------- MinIO(Docker compose, 与容器内凭据一致) ----------------
 minio:
   endpoint: http://127.0.0.1:9000        # SDK 连接地址(后端->MinIO)

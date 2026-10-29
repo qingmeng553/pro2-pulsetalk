@@ -19,6 +19,12 @@ public class CurrentUserVO {
     /** 头像URL */
     private String avatarUrl;
 
+    /** 绑定邮箱(仅本人接口返回) */
+    private String email;
+
+    /** 邮箱是否已验证 */
+    private Boolean emailVerified;
+
     /** 角色 USER / ADMIN(前端据此渲染管理员盾牌徽章、管理员删除按钮) */
     private UserRole role;
 

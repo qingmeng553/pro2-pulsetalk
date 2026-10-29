@@ -3,14 +3,17 @@ package com.community.controller;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import com.community.common.api.R;
+import com.community.dto.AdminResetPasswordDTO;
 import com.community.service.AdminUserService;
 import com.community.vo.PageVO;
 import com.community.vo.UserAdminVO;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,6 +56,14 @@ public class AdminUserController {
     @DeleteMapping("/{id}")
     public R<Void> delete(@PathVariable Long id) {
         adminUserService.delete(StpUtil.getLoginIdAsLong(), id);
+        return R.ok();
+    }
+
+    /** 重置用户密码（未绑定邮箱用户的唯一找回方式；会踢掉该用户全部会话） */
+    @SaCheckRole("admin")
+    @PostMapping("/{id}/reset-password")
+    public R<Void> resetPassword(@PathVariable Long id, @Valid @RequestBody AdminResetPasswordDTO dto) {
+        adminUserService.resetPassword(StpUtil.getLoginIdAsLong(), id, dto.getNewPassword());
         return R.ok();
     }
 }

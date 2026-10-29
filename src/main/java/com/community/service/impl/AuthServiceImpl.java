@@ -17,6 +17,7 @@ import com.community.entity.SysUser;
 import com.community.entity.UserRole;
 import com.community.mapper.SysUserMapper;
 import com.community.service.AuthService;
+import com.community.service.MailService;
 import com.community.service.MinioFileService;
 import com.community.service.RateLimitService;
 import com.community.vo.CurrentUserVO;
@@ -39,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
     private final SysUserMapper userMapper;
     private final MinioFileService minioFileService;
     private final RateLimitService rateLimitService;
+    private final MailService mailService;
 
     @Override
     public void register(RegisterDTO dto) {
@@ -119,6 +121,8 @@ public class AuthServiceImpl implements AuthService {
         vo.setUsername(user.getUsername());
         vo.setNickname(user.getNickname());
         vo.setAvatarUrl(user.getAvatarUrl());
+        vo.setEmail(user.getEmail());
+        vo.setEmailVerified(user.getEmailVerified() != null && user.getEmailVerified() == 1);
         vo.setRole(user.getRole());
         // v3：密保问题状态 + 封禁状态(前端据此隐藏设置入口 / 禁用发帖评论)
         vo.setHasSecurityQuestion(user.getSecurityQuestion() != null && !user.getSecurityQuestion().isBlank());
@@ -148,6 +152,10 @@ public class AuthServiceImpl implements AuthService {
         }
         user.setPassword(PasswordUtil.encode(dto.getNewPassword()));
         userMapper.updateById(user);
+        // 改密成功：踢掉全部会话 + 通知原邮箱（alpha2）
+        StpUtil.logout(userId);
+        notifySecurity(user.getEmail(), "PulseTalk 密码已修改",
+                "你的 PulseTalk 账号密码已修改。如非本人操作，请立即联系管理员。");
         log.info("[改密] 用户 {} 修改了登录密码", userId);
     }
 
@@ -209,6 +217,10 @@ public class AuthServiceImpl implements AuthService {
         }
         user.setPassword(PasswordUtil.encode(dto.getNewPassword()));
         userMapper.updateById(user);
+        // 密保找回已标记 deprecated，但改密后的安全动作保持一致
+        StpUtil.logout(user.getId());
+        notifySecurity(user.getEmail(), "PulseTalk 密码已重置",
+                "你的 PulseTalk 账号密码已通过密保问题重置。如非本人操作，请立即联系管理员。");
         log.info("[找回密码] 用户 {} 通过密保答案重置了密码", user.getId());
     }
 
@@ -224,5 +236,17 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ResultCode.UNAUTHORIZED, "用户不存在，请重新登录");
         }
         return user;
+    }
+
+    /** 安全通知：邮件失败只记日志，不影响主流程 */
+    private void notifySecurity(String email, String subject, String content) {
+        if (!StringUtils.hasText(email)) {
+            return;
+        }
+        try {
+            mailService.sendNotice(email, subject, content);
+        } catch (Exception e) {
+            log.warn("[安全通知] 发送失败 err={}", e.getMessage());
+        }
     }
 }

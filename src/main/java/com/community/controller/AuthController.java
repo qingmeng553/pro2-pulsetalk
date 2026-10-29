@@ -2,17 +2,26 @@ package com.community.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.community.common.api.R;
+import com.community.common.util.IpUtil;
+import com.community.dto.BindEmailDTO;
 import com.community.dto.ForgotQueryDTO;
 import com.community.dto.ForgotResetDTO;
 import com.community.dto.LoginDTO;
+import com.community.dto.RebindEmailDTO;
 import com.community.dto.RegisterDTO;
+import com.community.dto.ResetByCodeDTO;
 import com.community.dto.SecurityQuestionDTO;
+import com.community.dto.SendCodeDTO;
 import com.community.dto.UpdatePasswordDTO;
 import com.community.dto.UpdateProfileDTO;
 import com.community.service.AuthService;
+import com.community.service.CaptchaService;
+import com.community.service.EmailAuthService;
+import com.community.vo.CaptchaVO;
 import com.community.vo.CurrentUserVO;
 import com.community.vo.LoginVO;
 import com.community.vo.SecurityQuestionVO;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +40,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class AuthController {
 
     private final AuthService authService;
+    private final CaptchaService captchaService;
+    private final EmailAuthService emailAuthService;
 
     /** 用户注册 */
     @PostMapping("/register")
@@ -65,6 +76,44 @@ public class AuthController {
     @PostMapping("/upload-avatar")
     public R<String> uploadAvatar(@RequestParam("file") MultipartFile file) {
         return R.ok(authService.uploadAvatar(file));
+    }
+
+    // ---- alpha2：图形码 / 邮箱绑定 / 邮箱找回 ----
+
+    /** 图形验证码（公开，同 IP 限频） */
+    @GetMapping("/captcha")
+    public R<CaptchaVO> captcha(HttpServletRequest request) {
+        return R.ok(captchaService.generate(IpUtil.clientIp(request)));
+    }
+
+    /** 发送邮箱验证码：scene=bind/rebind 需登录，reset 公开（未绑定也返回成功） */
+    @PostMapping("/email/send-code")
+    public R<Void> sendEmailCode(@Valid @RequestBody SendCodeDTO dto, HttpServletRequest request) {
+        emailAuthService.sendCode(dto, IpUtil.clientIp(request));
+        return R.ok();
+    }
+
+    /** 首次绑定邮箱（登录 + 当前密码 + 验证码） */
+    @SaCheckLogin
+    @PostMapping("/email/bind")
+    public R<Void> bindEmail(@Valid @RequestBody BindEmailDTO dto) {
+        emailAuthService.bind(dto);
+        return R.ok();
+    }
+
+    /** 换绑邮箱（登录 + 当前密码 + 新邮箱验证码） */
+    @SaCheckLogin
+    @PostMapping("/email/rebind")
+    public R<Void> rebindEmail(@Valid @RequestBody RebindEmailDTO dto) {
+        emailAuthService.rebind(dto);
+        return R.ok();
+    }
+
+    /** 邮箱验证码重置密码（公开；成功后踢掉该用户全部会话） */
+    @PostMapping("/forgot/reset-by-code")
+    public R<Void> resetByCode(@Valid @RequestBody ResetByCodeDTO dto) {
+        emailAuthService.resetByCode(dto);
+        return R.ok();
     }
     // ---- v3：账号自助 ----
     /** 修改昵称(改名) */

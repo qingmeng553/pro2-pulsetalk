@@ -33,6 +33,8 @@ CREATE TABLE sys_user (
     password          VARCHAR(128) NOT NULL COMMENT '密码(salt$sha256hex, 加密存储)',
     nickname          VARCHAR(64)  DEFAULT NULL COMMENT '昵称',
     avatar_url        VARCHAR(512) DEFAULT NULL COMMENT '头像URL(MinIO)',
+    email             VARCHAR(128) DEFAULT NULL COMMENT '绑定邮箱(唯一，可为空)',
+    email_verified    TINYINT      NOT NULL DEFAULT 0 COMMENT '0未验证/1已验证',
     security_question VARCHAR(200) DEFAULT NULL COMMENT '密保问题(用于忘记密码)',
     security_answer   VARCHAR(128) DEFAULT NULL COMMENT '密保答案(加密存储)',
     role              VARCHAR(16)  NOT NULL DEFAULT 'USER' COMMENT '角色: USER普通 / ADMIN管理员',
@@ -41,7 +43,8 @@ CREATE TABLE sys_user (
     create_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (id),
-    UNIQUE KEY uk_username (username)
+    UNIQUE KEY uk_username (username),
+    UNIQUE KEY uk_email (email)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户表';
 
 -- 预置账号：admin / 123456 (ADMIN)，test / 123456 (USER)

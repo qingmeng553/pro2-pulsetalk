@@ -32,4 +32,9 @@ public interface AdminUserService {
      * 删除用户(逻辑删除；同时释放用户名占用)
      */
     void delete(long adminId, long targetId);
+
+    /**
+     * 管理员重置用户密码（未绑定邮箱用户的唯一找回方式；踢掉该用户全部会话）
+     */
+    void resetPassword(long adminId, long targetId, String newPassword);
 }

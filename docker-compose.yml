@@ -80,6 +80,15 @@ services:
       retries: 10
       start_period: 20s
 
+  # ---------------- MailHog 本地邮件（开发用，收件箱 http://localhost:8025） ----------------
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: pro2-mailhog
+    restart: always
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI / HTTP API
+
   # ---------------- pro2 后端应用 ----------------
   pro2:
     build:
@@ -96,6 +105,12 @@ services:
       MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin123}
+      # 本地编排默认走 MailHog；生产改用 163（见 deploy/.env.prod.example）
+      MAIL_HOST: ${MAIL_HOST:-mailhog}
+      MAIL_PORT: ${MAIL_PORT:-1025}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-false}
+      MAIL_SMTP_SSL: ${MAIL_SMTP_SSL:-false}
+      MAIL_FROM: ${MAIL_FROM:-PulseTalk <no-reply@pulsetalk.local>}
     ports:
       - "8085:8085"
     depends_on:

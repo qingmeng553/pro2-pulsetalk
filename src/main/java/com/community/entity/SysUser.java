@@ -37,6 +37,12 @@ public class SysUser implements Serializable {
     /** 头像URL(MinIO 对象存储地址) */
     private String avatarUrl;
 
+    /** 绑定邮箱(唯一，可为空；alpha2) */
+    private String email;
+
+    /** 邮箱是否已验证 0未验证 / 1已验证 */
+    private Integer emailVerified;
+
     /** 密保问题(v3)：由用户自行设置 */
     private String securityQuestion;
 
