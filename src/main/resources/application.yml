@@ -29,6 +29,9 @@ mybatis-plus:
     banner: false
     db-config:
       id-type: auto               # 主键依赖数据库自增
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
 
 # ---------------- Sa-Token(Redis 会话) ----------------
 sa-token:

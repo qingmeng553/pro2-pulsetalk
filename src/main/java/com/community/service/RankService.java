@@ -29,4 +29,9 @@ public interface RankService {
      * @return 榜单条目(热度从高到低)
      */
     List<RankItemVO> top(int topN);
+
+    /**
+     * 榜单为空时用数据库计数重建(Redis 换容器/数据丢失后自动恢复，避免榜单只剩新帖)
+     */
+    void rebuildFromDbIfEmpty();
 }

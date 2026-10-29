@@ -6,7 +6,7 @@
     </div>
 
     <div class="chart-card">
-      <div class="chart-tip">热度 = 点赞×3 + 收藏×5 + 浏览×0.1　·　点击条形可直接进入对应帖子</div>
+      <div class="chart-tip">热度 = 点赞×3 + 收藏×5 + 浏览×0.1　·　展示 Top10，点击条形可直接进入对应帖子</div>
       <div ref="chartRef" class="chart"></div>
       <div v-if="!rows.length" class="empty-tip">暂无热度数据</div>
     </div>
@@ -26,10 +26,10 @@ const router = useRouter()
 
 let chart = null
 
-// 拉取榜单并渲染
+// 拉取榜单并渲染（只看前十）
 async function load() {
   try {
-    rows.value = await apiHotRank(20)
+    rows.value = await apiHotRank(10)
     renderChart()
   } catch (e) {
     /* 拦截器已提示 */
@@ -138,7 +138,7 @@ onBeforeUnmount(() => {
 }
 .chart {
   width: 100%;
-  height: 620px;
+  height: 430px;
 }
 
 @media (max-width: 768px) {

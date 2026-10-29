@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { isLoggedIn } from '../utils/auth'
-import { openLoginDialog, authState } from '../store/user'
+import { getToken } from '../utils/auth'
+import { isLoggedIn, openLoginDialog, authState } from '../store/user'
 
 // 路由表：requiresAuth 需登录，adminOnly 仅管理员
 
@@ -27,11 +27,19 @@ const router = createRouter({
   routes
 })
 
+// 登录态判据统一走 store 的响应式状态；token 只作刷新后的兜底
+function loggedIn() {
+  return isLoggedIn.value || !!getToken()
+}
+
 // 路由守卫
 router.beforeEach((to) => {
-  if (to.meta.requiresAuth && !isLoggedIn()) {
-    openLoginDialog()
-    return { name: 'home' }
+  if (to.meta.requiresAuth && !loggedIn()) {
+    // 记住用户原本要去的页面，登录成功后自动跳回（否则登录成功也不会跳转）
+    openLoginDialog(() => {
+      router.replace(to.fullPath)
+    })
+    return false
   }
   if (to.meta.adminOnly && authState.user?.role !== 'ADMIN') {
     ElMessage.warning('仅管理员可以访问用户管理')

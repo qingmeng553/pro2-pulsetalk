@@ -30,6 +30,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RankServiceImpl implements RankService {
 
+    /** 重建榜单时最多回填的帖子数 */
+    private static final int REBUILD_LIMIT = 500;
+    private static final double LIKE_WEIGHT = 3d;
+    private static final double COLLECT_WEIGHT = 5d;
+    private static final double VIEW_WEIGHT = 0.1d;
+
     private final StringRedisTemplate redisTemplate;
     private final PostMapper postMapper;
     private final PostCategoryMapper categoryMapper;
@@ -46,6 +52,33 @@ public class RankServiceImpl implements RankService {
     @Override
     public void remove(long postId) {
         redisTemplate.opsForZSet().remove(RedisKeys.HOT_ZSET, String.valueOf(postId));
+    }
+
+    @Override
+    public void rebuildFromDbIfEmpty() {
+        Long size = redisTemplate.opsForZSet().size(RedisKeys.HOT_ZSET);
+        if (size != null && size > 0) {
+            return;
+        }
+        // 取互动过的帖子(浏览量>0 或有点赞/收藏)，按库中计数算分回填榜单
+        List<Post> posts = postMapper.selectList(new LambdaQueryWrapper<Post>()
+                .select(Post::getId, Post::getLikeCount, Post::getCollectCount, Post::getViewCount)
+                .gt(Post::getViewCount, 0)
+                .orderByDesc(Post::getId)
+                .last("LIMIT " + REBUILD_LIMIT));
+        int count = 0;
+        for (Post p : posts) {
+            int like = p.getLikeCount() == null ? 0 : p.getLikeCount();
+            int collect = p.getCollectCount() == null ? 0 : p.getCollectCount();
+            int view = p.getViewCount() == null ? 0 : p.getViewCount();
+            double score = like * LIKE_WEIGHT + collect * COLLECT_WEIGHT + view * VIEW_WEIGHT;
+            if (score <= 0) {
+                continue;
+            }
+            redisTemplate.opsForZSet().add(RedisKeys.HOT_ZSET, String.valueOf(p.getId()), score);
+            count++;
+        }
+        log.info("[热度榜] 榜单为空，已按数据库计数重建 {} 条", count);
     }
 
     @Override

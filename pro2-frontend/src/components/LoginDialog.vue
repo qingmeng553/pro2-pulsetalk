@@ -133,7 +133,11 @@ const registerRules = {
 /** 关闭弹窗时复位 */
 function onClose() {
   authState.dialogVisible = false
-  authState.pendingAction = null
+  // 未登录时用户主动关闭：清掉待办，避免残留旧闭包
+  // 已登录时（applyLogin 触发的关闭）保留，防止把守卫记住的目标页面清掉
+  if (!authState.user) {
+    authState.pendingAction = null
+  }
 }
 
 /** 切到忘记密码 */
