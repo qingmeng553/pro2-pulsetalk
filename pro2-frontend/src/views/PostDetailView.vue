@@ -68,13 +68,8 @@
           <MarkdownViewer :content="detail.content" />
         </div>
 
-        <!-- 相关推荐：同分类优先，不足用最新补齐 -->
-        <section v-if="related.length" class="related-card">
-          <div class="related-head">
-            <h2 class="related-title">相关推荐</h2>
-          </div>
-          <PostRow v-for="p in related" :key="p.id" :post="p" />
-        </section>
+        <!-- 宽屏：相关推荐在正文下方；窄屏移到评论之后 -->
+        <RelatedPosts v-if="isWide" class="related-desktop" :posts="related" />
       </template>
 
       <el-empty v-else-if="!loading" description="帖子不存在或已被删除" />
@@ -195,6 +190,9 @@
       </section>
     </aside>
 
+    <!-- 窄屏：评论区之后才是相关推荐，保证评论紧贴正文 -->
+    <RelatedPosts v-if="detail && !isWide" class="related-narrow" :posts="related" />
+
     <!-- 移动端吸底操作条（详情页不显示底部 Tab） -->
     <div v-if="detail" class="mobile-actions">
       <button :class="{ active: detail.liked }" @click="onLike">
@@ -226,7 +224,7 @@ import {
 } from '@element-plus/icons-vue'
 import MarkdownViewer from '../components/MarkdownViewer.vue'
 import HomeSidebar from '../components/HomeSidebar.vue'
-import PostRow from '../components/PostRow.vue'
+import RelatedPosts from '../components/RelatedPosts.vue'
 import UserChip from '../components/UserChip.vue'
 import MiniTag from '../components/MiniTag.vue'
 import { apiPostDetail, apiPostList, apiLikePost, apiCollectPost, apiDeletePost, apiAdminDeletePost } from '../api/post'
@@ -249,6 +247,12 @@ const readProgress = ref(0)
 function onScroll() {
   const total = document.documentElement.scrollHeight - window.innerHeight
   readProgress.value = total > 0 ? Math.min(100, Math.max(0, (window.scrollY / total) * 100)) : 0
+}
+
+// 1280 以上相关推荐在正文下方；窄屏放到评论之后，保证评论紧贴正文
+const isWide = ref(window.innerWidth >= 1280)
+function onResize() {
+  isWide.value = window.innerWidth >= 1280
 }
 
 // 评论
@@ -458,11 +462,13 @@ onMounted(() => {
   loadDetail()
   loadComments(1)
   window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('resize', onResize)
   onScroll()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', onScroll)
+  window.removeEventListener('resize', onResize)
 })
 </script>
 
@@ -786,25 +792,21 @@ onBeforeUnmount(() => {
   margin-top: var(--sp-3);
 }
 
-/* ---------- 相关推荐 ---------- */
-.related-card {
+/* ---------- 相关推荐位置 ---------- */
+.related-desktop {
   margin-top: var(--sp-4);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-color);
-  border-radius: var(--r-md);
-  overflow: hidden;
 }
 
-.related-head {
-  padding: var(--sp-3) var(--sp-4);
-  border-bottom: 1px solid var(--border-color);
+@media (max-width: 1279px) {
+  .related-narrow {
+    grid-column: 2;
+  }
 }
 
-.related-title {
-  margin: 0;
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-bold);
-  color: var(--text-primary);
+@media (max-width: 959px) {
+  .related-narrow {
+    grid-column: auto;
+  }
 }
 
 /* ---------- 移动端吸底操作条 ---------- */
