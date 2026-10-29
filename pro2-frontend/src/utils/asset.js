@@ -3,6 +3,9 @@
 // App(Capacitor) 壳里相对路径会指向本地，需要拼站点 base（构建时注入 VITE_APP_BASE）。
 const APP_BASE = String(import.meta.env.VITE_APP_BASE || '').replace(/\/$/, '')
 
+/** App 内使用的站点源（构建时注入；Web 为空） */
+export const APP_ORIGIN = APP_BASE
+
 export function isApp() {
   const cap = window.Capacitor
   return !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform())

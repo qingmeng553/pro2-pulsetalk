@@ -129,7 +129,7 @@ function onClear() {
 }
 
 function downloadApp() {
-  ElMessage.info('App 1.2.0 内测中，下载入口敬请期待')
+  router.push('/app')
 }
 
 // 有 token 但缺用户信息时补拉一次，避免"已登录却显示未登录"

@@ -30,11 +30,37 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
+import { Capacitor } from '@capacitor/core'
+import { StatusBar, Style } from '@capacitor/status-bar'
+import { SplashScreen } from '@capacitor/splash-screen'
+import { App as CapApp } from '@capacitor/app'
 import NavBar from './components/NavBar.vue'
 import HomeSidebar from './components/HomeSidebar.vue'
 import MobileTabBar from './components/MobileTabBar.vue'
 import LoginDialog from './components/LoginDialog.vue'
 import { uiState } from './store/ui'
+import { checkAppUpdate } from './utils/appUpdate'
+
+onMounted(async () => {
+  if (!Capacitor.isNativePlatform()) return
+  try {
+    await StatusBar.setStyle({ style: Style.Light })
+    await StatusBar.setBackgroundColor({ color: '#2563eb' })
+  } catch (e) {
+    /* 部分 Android 版本不支持动态改色 */
+  }
+  setTimeout(() => {
+    SplashScreen.hide().catch(() => {})
+  }, 400)
+
+  CapApp.addListener('backButton', ({ canGoBack }) => {
+    if (canGoBack) window.history.back()
+    else CapApp.exitApp()
+  })
+
+  checkAppUpdate()
+})
 </script>
 
 <style scoped>

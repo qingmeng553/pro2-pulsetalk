@@ -94,6 +94,9 @@
         <div class="interact-meta">
           <span><el-icon><View /></el-icon>{{ detail.viewCount || 0 }} 次浏览</span>
           <span><el-icon><ChatDotRound /></el-icon>{{ commentTotal }} 条评论</span>
+          <button type="button" class="share-action" @click="onShare">
+            <el-icon><Share /></el-icon>分享
+          </button>
         </div>
       </section>
 
@@ -208,6 +211,10 @@
         <el-icon><ChatDotRound /></el-icon>
         <span>{{ commentTotal }}</span>
       </button>
+      <button @click="onShare">
+        <el-icon><Share /></el-icon>
+        <span>分享</span>
+      </button>
       <button @click="goBack">
         <el-icon><Back /></el-icon>
         <span>返回</span>
@@ -221,8 +228,9 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  Delete, EditPen, Star, View, ChatDotRound, Back
+  Delete, EditPen, Star, View, ChatDotRound, Back, Share
 } from '@element-plus/icons-vue'
+import { Share as CapShare } from '@capacitor/share'
 import MarkdownViewer from '../components/MarkdownViewer.vue'
 import HomeSidebar from '../components/HomeSidebar.vue'
 import RelatedPosts from '../components/RelatedPosts.vue'
@@ -324,9 +332,28 @@ async function loadDetail() {
   }
 }
 
+/** 系统分享（App 走 Capacitor Share；Web 走 Web Share / 复制链接） */
+async function onShare() {
+  const url = `http://qingmeng553.xyz/post/${postId.value}`
+  try {
+    await CapShare.share({
+      title: detail.value?.title || 'PulseTalk',
+      text: detail.value?.title || '来看看这篇帖子',
+      url,
+      dialogTitle: '分享帖子'
+    })
+  } catch (e) {
+    try {
+      await navigator.clipboard.writeText(url)
+      ElMessage.success('链接已复制')
+    } catch (err) {
+      ElMessage.info(url)
+    }
+  }
+}
+
 /** 点赞/取消（游客先登录，登录后自动继续） */
-async function onLike() {
-  if (!isLoggedIn.value) {
+async function onLike() {  if (!isLoggedIn.value) {
     openLoginDialog(() => onLike())
     return
   }
@@ -698,6 +725,22 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+.share-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+}
+
+.share-action:hover {
+  color: var(--c-primary);
 }
 
 /* ---------- 评论 ---------- */

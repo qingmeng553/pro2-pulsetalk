@@ -1,15 +1,26 @@
 {
   "name": "pro2-frontend",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.2.0-alpha.1",
   "description": "点评贴吧社区前端 (Vue3 + Vite + Element-Plus + ECharts + D3)",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "build:app": "vite build --mode app",
+    "preview": "vite preview",
+    "cap:sync": "npm run build:app && cap sync android",
+    "cap:open": "cap open android"
   },
   "dependencies": {
+    "@capacitor/android": "^6.2.3",
+    "@capacitor/app": "^6.0.3",
+    "@capacitor/browser": "^6.0.6",
+    "@capacitor/cli": "^6.2.3",
+    "@capacitor/core": "^6.2.3",
+    "@capacitor/share": "^6.0.4",
+    "@capacitor/splash-screen": "^6.0.4",
+    "@capacitor/status-bar": "^6.0.3",
     "@element-plus/icons-vue": "^2.3.1",
     "@fontsource/inter": "^5.3.0",
     "axios": "^1.7.2",

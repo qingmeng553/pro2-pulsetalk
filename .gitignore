@@ -60,3 +60,10 @@ out/
 
 ### AI/调试临时产物 ###
 .tmp-*
+
+### App 签名与本地构建 ###
+.secrets/
+pro2-frontend/android/keystore.properties
+pro2-frontend/android/local.properties
+
+deploy/www/download/*.apk

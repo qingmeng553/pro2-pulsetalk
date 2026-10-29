@@ -1,4 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router'
+import { Capacitor } from '@capacitor/core'
 import { ElMessage } from 'element-plus'
 import { getToken } from '../utils/auth'
 import { isLoggedIn, openLoginDialog, authState } from '../store/user'
@@ -11,6 +12,7 @@ const routes = [
   { path: '/post/edit/:id', name: 'post-edit', component: () => import('../views/PostCreateView.vue'), meta: { title: '编辑帖子', requiresAuth: true } },
   { path: '/post/:id', name: 'post-detail', component: () => import('../views/PostDetailView.vue'), meta: { title: '帖子详情' } },
   { path: '/forgot', name: 'forgot', component: () => import('../views/ForgotView.vue'), meta: { title: '找回密码' } },
+  { path: '/app', name: 'app-download', component: () => import('../views/AppDownloadView.vue'), meta: { title: '下载 App' } },
   { path: '/profile/space', name: 'profile-space', component: () => import('../views/ProfileSpaceEditor.vue'), meta: { title: '编辑主页', requiresAuth: true } },
   { path: '/profile', name: 'profile', component: () => import('../views/ProfileView.vue'), meta: { title: '个人中心', requiresAuth: true } },
   // 消息 / 聊天 / 他人主页
@@ -25,7 +27,8 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  // App 的 WebView 用 file/localhost 承载，history 路由容易 404；原生端统一 hash
+  history: Capacitor.isNativePlatform() ? createWebHashHistory() : createWebHistory(),
   routes
 })
 

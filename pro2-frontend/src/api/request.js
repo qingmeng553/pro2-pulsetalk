@@ -2,11 +2,16 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { getToken } from '../utils/auth'
 import { resetAuth, openLoginDialog } from '../store/user'
+import { isApp, APP_ORIGIN } from '../utils/asset'
 
 // axios 实例：后端统一 HTTP 200，业务结果看响应体 code
+// App(Capacitor) 里相对 /api 会指向本地 WebView，必须拼站点源
+const API_BASE = isApp()
+  ? `${APP_ORIGIN || 'http://qingmeng553.xyz'}/api`
+  : (import.meta.env.VITE_API_BASE || '/api')
 
 const request = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE,
   timeout: 20000
 })
 

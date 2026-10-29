@@ -25,8 +25,8 @@
 
     <section class="rail-card">
       <h3 class="rail-title">PulseTalk App</h3>
-      <p class="rail-text">1.2.0 内测中，Android 包完成后在这里放下载入口。</p>
-      <el-button class="rail-btn" disabled>敬请期待</el-button>
+      <p class="rail-text">Android 1.2.0-alpha.1 · 全功能对齐，APK 直接安装。</p>
+      <el-button type="primary" class="rail-btn" @click="$router.push('/app')">下载 Android 版</el-button>
     </section>
 
     <section class="rail-card">

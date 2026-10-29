@@ -161,7 +161,7 @@ MySQL 容器首次启动时会自动执行 `sql/init.sql`：创建 `community_db
 mvn spring-boot:run
 # 或先打包再运行
 mvn clean install -DskipTests
-java -jar target/pro2-1.1.0.jar
+java -jar target/pro2-1.2.0-alpha.1.jar
 ```
 
 启动成功日志包含：Sa-Token 会话持久层使用 Redis、MinIO 桶初始化完成、`PulseTalk 社区后端启动成功`。存活探测：`curl http://localhost:8085/demo/ping`。
@@ -196,6 +196,24 @@ npm run dev            # 浏览器访问 http://localhost:5173
 
 ---
 
+## Android App 构建
+
+App 是 Capacitor 6 壳，复用同一套 Vue 页面，不是第二套 UI。
+
+```bash
+cd pro2-frontend
+npm install
+npm run build:app          # 注入 VITE_APP_BASE=http://qingmeng553.xyz
+npx cap sync android
+cd android
+./gradlew assembleRelease  # 需要 Android SDK 34 + JDK 17
+```
+
+- 包名：`com.qingmeng553.pulsetalk`，版本 `1.2.0-alpha.1`
+- release 签名读取 `android/keystore.properties`（本机文件，不入库）
+- 产物：`android/app/build/outputs/apk/release/app-release.apk`
+- 下载页：`/app`；版本检查：`GET /api/app/version`
+
 ## 接口
 
 | 模块 | 接口 |
@@ -210,7 +228,7 @@ npm run dev            # 浏览器访问 http://localhost:5173
 | 关系 | `GET /user/{id}`、`POST /friend/request|accept|reject|remove/{userId}`、`GET /friend/list`、`GET /friend/pending/list`、`POST /blacklist/add|remove/{userId}`、`GET /blacklist/list` |
 | 管理端 | `GET /admin/user/list`、`POST /admin/user/{id}/ban`、`POST /admin/user/{id}/unban`、`DELETE /admin/user/{id}`、`POST /admin/user/{id}/reset-password`、`GET /admin/space/reports`、`POST /admin/space/reports/{id}/handle`、`POST /admin/user/{id}/space/hide` |
 | 主页 | `GET /user/{id}/space`、`PUT /user/profile/space`、`POST /user/profile/image`、`GET/POST /user/{id}/guestbook`、`DELETE /user/guestbook/{id}`、`POST /user/{id}/report` |
-| 探测 | `GET /demo/ping` |
+| 探测 | `GET /demo/ping`、`GET /app/version` |
 
 ---
 
@@ -231,7 +249,7 @@ npm run dev            # 浏览器访问 http://localhost:5173
 ### 1. 构建
 
 ```bash
-mvn clean install -DskipTests                 # 产物 target/pro2-1.1.0.jar
+mvn clean install -DskipTests                 # 产物 target/pro2-1.2.0-alpha.1.jar
 cd pro2-frontend && npm run build && cd ..    # 产物 pro2-frontend/dist
 cp -r pro2-frontend/dist/* deploy/www/        # 前端产物放入挂载目录
 ```
@@ -255,7 +273,7 @@ cp deploy/.env.prod.example deploy/.env.prod
 ```bash
 # 上传项目（Dockerfile、compose、sql、src、deploy 均为必需；jar 与 dist 为构建产物）
 scp -r pom.xml Dockerfile docker-compose.yml sql src deploy root@<服务器IP>:/opt/pulsetalk/
-scp target/pro2-1.1.0.jar root@<服务器IP>:/opt/pulsetalk/target/
+scp target/pro2-1.2.0-alpha.1.jar root@<服务器IP>:/opt/pulsetalk/target/
 
 # 启动
 docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.prod up -d --build
@@ -328,7 +346,13 @@ docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.prod up 
 
 ## 更新记录
 
-### v1.1.0（进行中）
+### v1.2.0-alpha.1
+- Android App（Capacitor 6 壳）：复用全部 Web 功能，支持系统相机/相册、系统分享、状态栏、返回键与启动图
+- 新增 `/app` 下载页、`GET /app/version` 版本检查、APK 侧载下载（`/download/pulsetalk-1.2.0-alpha.1.apk`）
+- App 内接口与图片资源自动切到 `http://qingmeng553.xyz`；Android 明文流量仅放行本域
+- 修复发帖页正文编辑器被 flex 压扁（文本框仅约 140px 宽）的布局问题
+
+### v1.1.0（已上线）
 - 界面体系重构：统一设计 Token（颜色 / 字号 / 间距 / 圆角 / 阴影 / 动效），去除渐变与彩色阴影
 - 布局重构：三栏骨架（左侧导航 + 中间信息流 + 右侧活动位），帖子详情改为「左正文 + 右互动」
 - 交互调整：以滚动浏览为主，取消榜单排名页，改为「大家都在看」
