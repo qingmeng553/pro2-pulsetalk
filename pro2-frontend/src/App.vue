@@ -1,7 +1,7 @@
 <template>
-  <div class="app-shell">
+  <div class="app-shell" :class="{ 'is-preview': isPreview }">
     <!-- 顶部导航 -->
-    <NavBar />
+    <NavBar v-if="!isPreview" />
 
     <!-- 页面主体 -->
     <router-view v-slot="{ Component }">
@@ -11,7 +11,7 @@
     </router-view>
 
     <!-- 移动端底部 Tab -->
-    <MobileTabBar />
+    <MobileTabBar v-if="!isPreview" />
 
     <!-- 移动端左栏抽屉（内容与桌面左栏同一组件） -->
     <el-drawer
@@ -30,7 +30,8 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import { SplashScreen } from '@capacitor/splash-screen'
@@ -41,6 +42,9 @@ import MobileTabBar from './components/MobileTabBar.vue'
 import LoginDialog from './components/LoginDialog.vue'
 import { uiState } from './store/ui'
 import { checkAppUpdate } from './utils/appUpdate'
+
+const route = useRoute()
+const isPreview = computed(() => !!route.query.preview)
 
 onMounted(async () => {
   if (!Capacitor.isNativePlatform()) return
@@ -85,6 +89,10 @@ onMounted(async () => {
 @media (max-width: 959px) {
   .app-shell {
     padding-bottom: calc(56px + env(safe-area-inset-bottom));
+  }
+
+  .app-shell.is-preview {
+    padding-bottom: 0;
   }
 }
 </style>

@@ -14,11 +14,23 @@
 
     <div v-if="loading" class="ed-loading" v-loading="true"></div>
 
+    <div v-else-if="!draft" class="ed-error">
+      <h3>主页编辑器加载失败</h3>
+      <p>{{ loadError || '请检查登录状态后重试' }}</p>
+      <el-button type="primary" @click="load">重新加载</el-button>
+    </div>
+
     <div v-else class="ed-body">
       <!-- 左侧配置 -->
       <aside class="ed-panel">
+        <div class="panel-tabs">
+          <button type="button" class="panel-tab" :class="{ active: activeTab === 'modules' }" @click="activeTab = 'modules'">模块</button>
+          <button type="button" class="panel-tab" :class="{ active: activeTab === 'content' }" @click="activeTab = 'content'">内容</button>
+          <button type="button" class="panel-tab" :class="{ active: activeTab === 'theme' }" @click="activeTab = 'theme'">主题</button>
+        </div>
+
         <!-- 模块开关/排序 -->
-        <section class="panel-sec">
+        <section v-show="activeTab === 'modules'" class="panel-sec">
           <h3 class="panel-title">模块</h3>
           <p class="panel-tip">拖拽或上下箭头排序；关闭的模块访客看不到</p>
           <div
@@ -50,7 +62,7 @@
         </section>
 
         <!-- 内容 -->
-        <section class="panel-sec">
+        <section v-show="activeTab === 'content'" class="panel-sec">
           <h3 class="panel-title">内容</h3>
 
           <div v-for="m in contentModules" :key="m.type" class="edit-block">
@@ -142,7 +154,7 @@
         </section>
 
         <!-- 主题 -->
-        <section class="panel-sec">
+        <section v-show="activeTab === 'theme'" class="panel-sec">
           <h3 class="panel-title">主题</h3>
           <div class="theme-grid">
             <button
@@ -234,6 +246,8 @@ const router = useRouter()
 const loading = ref(true)
 const saving = ref(false)
 const uploading = ref(false)
+const loadError = ref('')
+const activeTab = ref('modules')
 const draft = ref(null)
 const version = ref(0)
 const imgInput = ref()
@@ -264,15 +278,35 @@ const skillsText = computed({
 
 async function load() {
   loading.value = true
+  loadError.value = ''
   try {
     const space = await apiSpace(me.value.id)
-    draft.value = JSON.parse(JSON.stringify(space.layout))
+    draft.value = normalizeDraft(space.layout)
     version.value = space.version
     await nextTick()
     syncPreview()
+  } catch (e) {
+    draft.value = null
+    loadError.value = e?.message || '加载失败，请稍后重试'
   } finally {
     loading.value = false
   }
+}
+
+/** 老布局可能省略空模块的 data（尤其 pinned），编辑器必须保证每种模块都有可编辑结构 */
+function normalizeDraft(layout) {
+  const data = JSON.parse(JSON.stringify(layout || {}))
+  data.modules = (data.modules || []).map((m) => {
+    if (m.type === 'bio') {
+      m.data = { intro: '', ...(m.data || {}) }
+    } else if (m.type === 'pinned') {
+      m.data = { postId: m.data?.postId ?? null }
+    } else if (['skills', 'projects', 'gallery', 'links'].includes(m.type)) {
+      m.data = Array.isArray(m.data) ? m.data : []
+    }
+    return m
+  })
+  return data
 }
 
 function moveModule(index, delta) {
@@ -429,6 +463,55 @@ onBeforeUnmount(() => {
   border-radius: var(--r-md);
   max-height: calc(100vh - 140px);
   overflow-y: auto;
+}
+
+.panel-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  padding: 6px;
+  gap: 4px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.panel-tab {
+  flex: 1;
+  padding: 7px 0;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: var(--fs-xs);
+  cursor: pointer;
+}
+
+.panel-tab.active {
+  background: var(--bg-subtle);
+  color: var(--c-primary);
+  font-weight: var(--fw-medium);
+}
+
+.ed-error {
+  max-width: 460px;
+  margin: 40px auto;
+  padding: var(--sp-6);
+  text-align: center;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-md);
+}
+
+.ed-error h3 {
+  margin: 0 0 var(--sp-2);
+}
+
+.ed-error p {
+  margin: 0 0 var(--sp-4);
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
 }
 
 .panel-sec {
