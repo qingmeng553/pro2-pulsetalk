@@ -130,7 +130,10 @@ public class ProfileSpaceServiceImpl implements ProfileSpaceService {
 
     @Override
     public String uploadImage(MultipartFile file) {
-        return minioFileService.uploadProfileImage(file);
+        String url = minioFileService.uploadProfileImage(file);
+        // 布局 schema 统一存相对路径；上传接口若返回绝对地址则剥成 /files/...
+        int idx = url.indexOf("/files/");
+        return idx > 0 ? url.substring(idx) : url;
     }
 
     @Override

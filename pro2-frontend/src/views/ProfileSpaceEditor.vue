@@ -372,7 +372,10 @@ async function onFile(event) {
   }
   uploading.value = true
   try {
-    const url = await apiUploadSpaceImage(file)
+    const raw = await apiUploadSpaceImage(file)
+    // 上传接口可能返回绝对地址；布局 schema 统一存 /files/...
+    const idx = raw.indexOf('/files/')
+    const url = idx > 0 ? raw.slice(idx) : raw
     if (pendingCb.value) pendingCb.value(url)
   } finally {
     uploading.value = false

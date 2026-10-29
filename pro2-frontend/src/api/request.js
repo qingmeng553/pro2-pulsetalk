@@ -28,9 +28,13 @@ request.interceptors.request.use((config) => {
 function notifyByCode(code, msg, silent) {
   if (silent) return
   if (code === 401) return // 未登录统一走登录弹窗，不额外弹错误
-  if (code === 403) ElMessage.warning(msg || '没有权限执行该操作')
-  else if (code === 429) ElMessage.warning(msg || '操作太频繁啦，请稍后再试')
-  else ElMessage.error(msg || '请求失败，请稍后再试')
+  if (code === 403) {
+    ElMessage({ type: 'warning', message: msg || '没有权限执行该操作', grouping: true })
+  } else if (code === 429) {
+    ElMessage({ type: 'warning', message: msg || '操作太频繁啦，请稍后再试', grouping: true })
+  } else {
+    ElMessage({ type: 'error', message: msg || '请求失败，请稍后再试', grouping: true })
+  }
 }
 
 // 解包响应体

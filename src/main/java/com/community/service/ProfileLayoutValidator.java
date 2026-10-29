@@ -50,6 +50,11 @@ public class ProfileLayoutValidator {
 
     private static final int MAX_JSON_BYTES = 32 * 1024;
 
+    /** 允许的图片站点（上传接口可能返回绝对地址，历史布局里也会存在） */
+    private static final Set<String> MEDIA_HOSTS = Set.of(
+            "qingmeng553.xyz", "www.qingmeng553.xyz",
+            "121.43.252.96", "localhost", "127.0.0.1");
+
     private final ObjectMapper objectMapper;
     private final PostMapper postMapper;
 
@@ -372,8 +377,30 @@ public class ProfileLayoutValidator {
 
     private String imageUrl(String raw) {
         String value = raw.trim();
-        if (!value.startsWith("/files/") || value.contains("..") || value.length() > 512) {
-            throw bad("图片必须是本站 /files 地址");
+        if (value.length() > 512 || value.contains("..")) {
+            throw bad("图片地址不合法");
+        }
+        // 兼容上传接口/历史数据返回的绝对地址；只允许本项目的图片域名，外站图仍拒绝
+        if (value.startsWith("http://") || value.startsWith("https://")) {
+            try {
+                URI uri = new URI(value);
+                String host = uri.getHost();
+                if (host == null || !MEDIA_HOSTS.contains(host.toLowerCase(Locale.ROOT))) {
+                    throw bad("头图/图集请使用本站上传的图片，不支持外站图片");
+                }
+                String path = uri.getPath();
+                if (path == null || !path.startsWith("/files/")) {
+                    throw bad("图片必须是本站 /files 地址");
+                }
+                value = path;
+            } catch (BusinessException e) {
+                throw e;
+            } catch (Exception e) {
+                throw bad("图片地址不合法");
+            }
+        }
+        if (!value.startsWith("/files/")) {
+            throw bad("头图/图集请先上传，只支持本站 /files 地址，不支持外站图片");
         }
         return value;
     }
