@@ -17,7 +17,7 @@
       <div class="side-cats">
         <button
           class="side-cat"
-          :class="{ active: homeState.activeCategory == null }"
+          :class="{ active: activeCatId == null }"
           @click="pickCategory(null)"
         >
           全部
@@ -26,7 +26,7 @@
           v-for="c in homeState.categories"
           :key="c.id"
           class="side-cat"
-          :class="{ active: homeState.activeCategory === c.id }"
+          :class="{ active: isCategoryActive(c.id) }"
           @click="pickCategory(c.id)"
         >
           {{ c.name }}
@@ -57,6 +57,19 @@ import { isLoggedIn, openLoginDialog } from '../store/user'
 
 const route = useRoute()
 const router = useRouter()
+
+const props = defineProps({
+  // 详情页传入当前帖分类，用于左栏高亮；首页仍用 homeState.activeCategory
+  activeCategoryId: { type: [String, Number], default: null }
+})
+
+const activeCatId = computed(() =>
+  route.name === 'home' ? homeState.activeCategory : props.activeCategoryId
+)
+
+function isCategoryActive(id) {
+  return activeCatId.value != null && String(activeCatId.value) === String(id)
+}
 
 onMounted(() => {
   // 桌面左栏与移动抽屉共用；在非首页打开抽屉时也能拿到分类/热度

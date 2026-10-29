@@ -1,91 +1,112 @@
 <template>
-  <div class="page-container detail-page">
+  <div class="detail-shell">
     <!-- 阅读进度 -->
     <div class="read-bar" :style="{ width: readProgress + '%' }" />
-    <el-skeleton v-if="loading" :rows="8" animated />
 
-    <template v-else-if="detail">
-      <!-- 顶部信息 -->
-      <div class="head">
-        <div class="head-meta">
-          <MiniTag icon="🗂️" :text="detail.categoryName || '综合'" tone="primary" />
-          <span class="time">发布于 {{ formatTime(detail.createTime) }}</span>
-          <span class="time" v-if="detail.updateTime && detail.updateTime !== detail.createTime">
-            编辑于 {{ formatTime(detail.updateTime) }}
-          </span>
-        </div>
-        <h1 class="title">{{ detail.title }}</h1>
+    <!-- 左栏：与首页同一套导航 -->
+    <aside class="detail-left">
+      <HomeSidebar :active-category-id="detail?.categoryId" />
+    </aside>
 
-        <div class="author-line">
-          <UserChip :user="detail.author" :size="34" />
-          <MiniTag v-if="isOwner" icon="✍️" text="作者本人" tone="warn" />
+    <!-- 中栏：正文 -->
+    <main class="detail-main">
+      <el-skeleton v-if="loading" class="detail-skeleton" :rows="10" animated />
 
-          <div class="head-ops">
-            <!-- 作者：编辑 / 删除自己的帖子 -->
-            <template v-if="isOwner">
-              <el-button size="small" :icon="EditPen" @click="goEdit">编辑</el-button>
-              <el-button size="small" type="danger" plain :icon="Delete" @click="onDeletePost">删除</el-button>
-            </template>
-            <!-- 管理员：软删除任意帖子 -->
-            <el-button
-              v-if="isAdmin && !isOwner"
-              size="small"
-              type="danger"
-              plain
-              :icon="Delete"
-              @click="onAdminDeletePost"
-            >
-              管理员删除
-            </el-button>
+      <template v-else-if="detail">
+        <button class="back-link" @click="goBack">← 返回</button>
+
+        <!-- 标题区 -->
+        <article class="article-card">
+          <div class="head-meta">
+            <MiniTag :text="detail.categoryName || '综合'" tone="primary" />
+            <span class="meta-text">发布于 {{ formatTime(detail.createTime) }}</span>
+            <span v-if="edited" class="meta-text">编辑于 {{ formatTime(detail.updateTime) }}</span>
           </div>
+
+          <h1 class="title">{{ detail.title }}</h1>
+
+          <div class="author-line">
+            <UserChip :user="detail.author" :size="32" />
+            <MiniTag v-if="isOwner" text="作者本人" tone="warn" />
+            <span class="head-ops">
+              <template v-if="isOwner">
+                <el-button size="small" :icon="EditPen" @click="goEdit">编辑</el-button>
+                <el-button size="small" type="danger" plain :icon="Delete" @click="onDeletePost">
+                  删除
+                </el-button>
+              </template>
+              <el-button
+                v-if="isAdmin && !isOwner"
+                size="small"
+                type="danger"
+                plain
+                :icon="Delete"
+                @click="onAdminDeletePost"
+              >
+                管理员删除
+              </el-button>
+            </span>
+          </div>
+        </article>
+
+        <!-- 配图 -->
+        <div v-if="detail.imgUrls && detail.imgUrls.length" class="gallery">
+          <el-image
+            v-for="(u, i) in detail.imgUrls"
+            :key="u"
+            class="gallery-img"
+            :src="u"
+            fit="cover"
+            :preview-src-list="detail.imgUrls"
+            :initial-index="i"
+            preview-teleported
+          />
         </div>
-      </div>
 
-      <!-- 配图(多图) -->
-      <div v-if="detail.imgUrls && detail.imgUrls.length" class="gallery">
-        <el-image
-          v-for="(u, i) in detail.imgUrls"
-          :key="u"
-          class="gallery-img"
-          :src="u"
-          fit="cover"
-          :preview-src-list="detail.imgUrls"
-          :initial-index="i"
-          preview-teleported
-        />
-      </div>
+        <!-- Markdown 正文 -->
+        <div class="content-card">
+          <MarkdownViewer :content="detail.content" />
+        </div>
 
-      <!-- Markdown 正文 -->
-      <div class="content-card">
-        <MarkdownViewer :content="detail.content" />
-      </div>
+        <!-- 相关推荐：同分类优先，不足用最新补齐 -->
+        <section v-if="related.length" class="related-card">
+          <div class="related-head">
+            <h2 class="related-title">相关推荐</h2>
+          </div>
+          <PostRow v-for="p in related" :key="p.id" :post="p" />
+        </section>
+      </template>
 
-      <!-- 互动操作栏 -->
-      <div class="action-bar">
-        <button
-          class="action-btn"
-          :class="{ active: detail.liked }"
-          @click="onLike"
-        >
-          <el-icon :size="20"><CaretTop /></el-icon>
-          <span>点赞 {{ detail.likeCount || 0 }}</span>
-        </button>
-        <button
-          class="action-btn"
-          :class="{ active: detail.collected }"
-          @click="onCollect"
-        >
-          <el-icon :size="20"><Star /></el-icon>
-          <span>收藏 {{ detail.collectCount || 0 }}</span>
-        </button>
-        <span class="action-static"><el-icon><View /></el-icon> {{ detail.viewCount || 0 }} 次浏览</span>
-      </div>
+      <el-empty v-else-if="!loading" description="帖子不存在或已被删除" />
+    </main>
 
-      <!-- 评论 -->
-      <div class="comment-section">
-        <div class="section-title">全部评论（{{ commentTotal }}）</div>
+    <!-- 右栏：互动 + 评论 -->
+    <aside v-if="detail" id="comments" class="detail-side">
+      <section class="side-card interact-card">
+        <div class="interact-grid">
+          <button class="interact-btn" :class="{ active: detail.liked }" @click="onLike">
+            <el-icon :size="20"><CaretTop /></el-icon>
+            <span class="interact-num">{{ detail.likeCount || 0 }}</span>
+            <span class="interact-label">点赞</span>
+          </button>
+          <button class="interact-btn collect" :class="{ active: detail.collected }" @click="onCollect">
+            <el-icon :size="20"><Star /></el-icon>
+            <span class="interact-num">{{ detail.collectCount || 0 }}</span>
+            <span class="interact-label">收藏</span>
+          </button>
+        </div>
+        <div class="interact-meta">
+          <span><el-icon><View /></el-icon>{{ detail.viewCount || 0 }} 次浏览</span>
+          <span><el-icon><ChatDotRound /></el-icon>{{ commentTotal }} 条评论</span>
+        </div>
+      </section>
 
-        <!-- 评论输入 -->
+      <section class="side-card comment-card">
+        <div class="comment-head-row">
+          <h3 class="side-title">评论</h3>
+          <span class="side-count">{{ commentTotal }}</span>
+        </div>
+
         <el-alert
           v-if="isBanned"
           title="当前账号已被封禁，暂时无法发表评论"
@@ -94,8 +115,9 @@
           :closable="false"
           class="banned-tip"
         />
-        <div class="comment-input" :class="{ 'need-login': !isLoggedIn }" @click="focusComment">
-          <el-avatar :size="30" :src="authState.user?.avatarUrl" v-if="isLoggedIn">
+
+        <div class="comment-form" :class="{ 'need-login': !isLoggedIn }" @click="focusComment">
+          <el-avatar v-if="isLoggedIn" :size="24" :src="authState.user?.avatarUrl">
             {{ (authState.user?.nickname || 'U').slice(0, 1) }}
           </el-avatar>
           <el-input
@@ -105,26 +127,36 @@
             :rows="2"
             resize="none"
             maxlength="2000"
-            show-word-limit
             :disabled="isBanned"
             :placeholder="commentPlaceholder"
             @keydown.ctrl.enter="submitComment"
           />
-          <el-button type="primary" :loading="commenting" :disabled="isBanned" @click="submitComment">
-            发表评论
+        </div>
+        <div class="comment-form-actions">
+          <span class="comment-tip">{{ isLoggedIn ? 'Ctrl + Enter 发送' : '' }}</span>
+          <el-button
+            type="primary"
+            size="small"
+            :loading="commenting"
+            :disabled="isBanned"
+            @click="submitComment"
+          >
+            发表
           </el-button>
         </div>
 
-        <!-- 评论列表 -->
         <div class="comment-list">
-          <div v-if="!commentTotal && !commentLoading" class="empty-tip">还没有评论，来抢 1 楼 👇</div>
+          <div v-if="!commentTotal && !commentLoading" class="comment-empty">
+            还没有评论，来抢 1 楼
+          </div>
+
           <div v-for="c in comments" :key="c.id" class="comment-item" :id="`comment-${c.id}`">
-            <UserChip :user="c.author" :size="32" />
+            <UserChip :user="c.author" :size="24" />
             <div class="comment-main">
-              <div class="comment-head">
-                <MiniTag icon="#" :text="`${c.floor}楼`" tone="default" />
-                <span class="time">{{ formatTime(c.createTime) }}</span>
-                <span class="ops">
+              <div class="comment-meta">
+                <MiniTag :text="`${c.floor}楼`" tone="default" />
+                <span class="comment-time">{{ formatTime(c.createTime) }}</span>
+                <span class="comment-ops">
                   <el-button
                     v-if="c.userId && String(c.userId) === String(authState.user?.id)"
                     link
@@ -145,14 +177,14 @@
                   </el-button>
                 </span>
               </div>
-              <div class="comment-content">{{ c.content }}</div>
+              <p class="comment-content">{{ c.content }}</p>
             </div>
           </div>
 
-          <!-- 分页 -->
           <el-pagination
             v-if="commentTotal > commentPageSize"
-            class="pager"
+            class="comment-pager"
+            small
             layout="prev, pager, next"
             :total="commentTotal"
             :page-size="commentPageSize"
@@ -160,23 +192,44 @@
             @current-change="loadComments"
           />
         </div>
-      </div>
-    </template>
+      </section>
+    </aside>
 
-    <div v-else-if="!loading" class="empty-tip">帖子不存在或已被删除 🫥</div>
+    <!-- 移动端吸底操作条（详情页不显示底部 Tab） -->
+    <div v-if="detail" class="mobile-actions">
+      <button :class="{ active: detail.liked }" @click="onLike">
+        <el-icon><CaretTop /></el-icon>
+        <span>{{ detail.likeCount || 0 }}</span>
+      </button>
+      <button :class="{ active: detail.collected }" @click="onCollect">
+        <el-icon><Star /></el-icon>
+        <span>{{ detail.collectCount || 0 }}</span>
+      </button>
+      <button @click="scrollToComments">
+        <el-icon><ChatDotRound /></el-icon>
+        <span>{{ commentTotal }}</span>
+      </button>
+      <button @click="goBack">
+        <el-icon><Back /></el-icon>
+        <span>返回</span>
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Delete, EditPen } from '@element-plus/icons-vue'
+import {
+  Delete, EditPen, CaretTop, Star, View, ChatDotRound, Back
+} from '@element-plus/icons-vue'
 import MarkdownViewer from '../components/MarkdownViewer.vue'
-import AdminBadge from '../components/AdminBadge.vue'
+import HomeSidebar from '../components/HomeSidebar.vue'
+import PostRow from '../components/PostRow.vue'
 import UserChip from '../components/UserChip.vue'
 import MiniTag from '../components/MiniTag.vue'
-import { apiPostDetail, apiLikePost, apiCollectPost, apiDeletePost, apiAdminDeletePost } from '../api/post'
+import { apiPostDetail, apiPostList, apiLikePost, apiCollectPost, apiDeletePost, apiAdminDeletePost } from '../api/post'
 import { apiCommentList, apiCreateComment, apiDeleteComment, apiAdminDeleteComment } from '../api/comment'
 import { authState, isLoggedIn, openLoginDialog } from '../store/user'
 import { formatTime } from '../utils/format'
@@ -187,6 +240,9 @@ const postId = computed(() => route.params.id)
 
 const detail = ref(null)
 const loading = ref(true)
+const edited = computed(
+  () => !!detail.value?.updateTime && detail.value.updateTime !== detail.value.createTime
+)
 
 // 阅读进度
 const readProgress = ref(0)
@@ -205,18 +261,53 @@ const commentText = ref('')
 const commenting = ref(false)
 const commentInputRef = ref()
 
+// 相关推荐（正文下方）：同分类优先，不足用最新补齐
+const related = ref([])
+let relatedReq = 0
+
+async function loadRelated() {
+  const id = ++relatedReq
+  const currentId = String(postId.value)
+  try {
+    let list = []
+    if (detail.value?.categoryId) {
+      const data = await apiPostList({ page: 1, size: 6, categoryId: detail.value.categoryId })
+      list = (data.records || []).filter((p) => String(p.id) !== currentId)
+    }
+    if (list.length < 3) {
+      const latest = await apiPostList({ page: 1, size: 6 })
+      const seen = new Set([currentId, ...list.map((p) => String(p.id))])
+      for (const p of latest.records || []) {
+        if (seen.has(String(p.id))) continue
+        list.push(p)
+        seen.add(String(p.id))
+        if (list.length >= 4) break
+      }
+    }
+    if (id === relatedReq) related.value = list.slice(0, 4)
+  } catch (e) {
+    if (id === relatedReq) related.value = []
+  }
+}
+
 const isAdmin = computed(() => authState.user?.role === 'ADMIN')
 const isBanned = computed(() => !!authState.user?.banned)
 const commentPlaceholder = computed(() => {
   if (isBanned.value) return '账号已被封禁，暂时无法评论'
-  return isLoggedIn.value ? '友善评论，理性发言 ~' : '登录后即可发表评论'
+  return isLoggedIn.value ? '友善评论，理性发言' : '登录后即可发表评论'
 })
-const isOwner = computed(() => detail.value?.author?.userId && String(detail.value.author.userId) === String(authState.user?.id))
+const isOwner = computed(
+  () =>
+    detail.value?.author?.userId &&
+    String(detail.value.author.userId) === String(authState.user?.id)
+)
 
 async function loadDetail() {
   loading.value = true
+  related.value = []
   try {
     detail.value = await apiPostDetail(postId.value)
+    loadRelated()
   } catch (e) {
     detail.value = null
   } finally {
@@ -224,10 +315,10 @@ async function loadDetail() {
   }
 }
 
-/** 点赞/取消(游客弹出登录确认) */
+/** 点赞/取消（游客先登录，登录后自动继续） */
 async function onLike() {
   if (!isLoggedIn.value) {
-    openLoginDialog()
+    openLoginDialog(() => onLike())
     return
   }
   const res = await apiLikePost(postId.value)
@@ -238,7 +329,7 @@ async function onLike() {
 /** 收藏/取消 */
 async function onCollect() {
   if (!isLoggedIn.value) {
-    openLoginDialog()
+    openLoginDialog(() => onCollect())
     return
   }
   const res = await apiCollectPost(postId.value)
@@ -246,9 +337,11 @@ async function onCollect() {
   detail.value.collectCount = res.count
 }
 
-/** 游客点击评论框 → 登录 */
+/** 游客点击评论框 → 登录，登录后聚焦输入框 */
 function focusComment() {
-  if (!isLoggedIn.value) openLoginDialog()
+  if (!isLoggedIn.value) {
+    openLoginDialog(() => commentInputRef.value?.focus())
+  }
 }
 
 /** 发表评论 */
@@ -269,7 +362,7 @@ async function submitComment() {
   commenting.value = true
   try {
     await apiCreateComment(postId.value, { content })
-    ElMessage.success('评论成功')
+    ElMessage.success('已发表')
     commentText.value = ''
     commentPage.value = 1
     await loadComments(1)
@@ -301,6 +394,15 @@ async function loadComments(page = commentPage.value) {
 
 function goEdit() {
   router.push(`/post/edit/${postId.value}`)
+}
+
+function goBack() {
+  if (window.history.length > 1) router.back()
+  else router.push('/')
+}
+
+function scrollToComments() {
+  document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 /** 作者删除自己的帖子 */
@@ -365,248 +467,430 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* 阅读进度条 */
 .read-bar {
   position: fixed;
   top: 0;
   left: 0;
+  z-index: 150;
   height: 3px;
-  background: var(--brand-gradient);
-  z-index: 40;
+  background: var(--c-primary);
   border-radius: 0 3px 3px 0;
   transition: width 0.12s linear;
 }
-.detail-page {
-  max-width: 820px;
+
+.detail-shell {
+  display: grid;
+  grid-template-columns: var(--left-w) minmax(0, 1fr) 360px;
+  gap: var(--gap-col);
+  align-items: start;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--sp-4) var(--sp-6) var(--sp-12);
 }
-.head {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 22px 24px;
+
+.detail-left {
+  position: sticky;
+  top: calc(var(--header-h) + var(--sp-4));
+  max-height: calc(100vh - var(--header-h) - var(--sp-8));
+  overflow-y: auto;
 }
+
+.detail-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+/* 宽屏：互动卡吸顶，评论自然滚动 */
+@media (min-width: 1280px) {
+  .interact-card {
+    position: sticky;
+    top: calc(var(--header-h) + var(--sp-4));
+    z-index: 2;
+  }
+}
+
+.detail-main {
+  min-width: 0;
+}
+
+.detail-skeleton {
+  padding: var(--sp-5);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-md);
+}
+
+.back-link {
+  margin-bottom: var(--sp-3);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: var(--fs-xs);
+  cursor: pointer;
+}
+
+.back-link:hover {
+  color: var(--c-primary);
+}
+
+/* ---------- 标题区 ---------- */
+.article-card {
+  padding: var(--sp-6);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-md);
+}
+
 .head-meta {
   display: flex;
   align-items: center;
-  gap: 10px;
   flex-wrap: wrap;
+  gap: var(--sp-2);
 }
-.category {
-  background: #eef1ff;
-  color: var(--brand);
-  font-size: 12px;
-  padding: 2px 10px;
-  border-radius: 10px;
+
+.meta-text {
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
 }
-.time {
-  font-size: 12px;
-  color: var(--text-sub);
-}
+
 .title {
-  margin: 12px 0 14px;
-  font-size: 24px;
-  line-height: 1.4;
+  margin: var(--sp-3) 0 var(--sp-4);
+  font-size: var(--fs-xl);
+  line-height: 1.35;
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  word-break: break-word;
 }
+
 .author-line {
   display: flex;
   align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--border-color);
 }
-.nick {
-  font-weight: 600;
-}
-.owner-tag {
-  font-size: 11px;
-  color: #fff;
-  background: #ffb800;
-  border-radius: 8px;
-  padding: 1px 8px;
-}
+
 .head-ops {
+  display: inline-flex;
+  gap: var(--sp-2);
   margin-left: auto;
 }
+
+/* ---------- 配图 ---------- */
 .gallery {
-  margin-top: 14px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 10px;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
 }
+
 .gallery-img {
   width: 100%;
   height: 150px;
-  border-radius: 12px;
+  border-radius: var(--r-sm);
 }
+
+/* ---------- 正文 ---------- */
 .content-card {
-  margin-top: 14px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 24px 26px;
+  margin-top: var(--sp-4);
+  padding: var(--sp-6);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-md);
 }
-.action-bar {
-  margin-top: 14px;
+
+/* ---------- 右栏卡片 ---------- */
+.side-card {
+  padding: var(--sp-4);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-md);
+}
+
+.interact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-2);
+}
+
+.interact-btn {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 14px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 14px 20px;
-}
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: none;
-  background: #f2f4fa;
-  color: var(--text-sub);
-  padding: 9px 20px;
-  border-radius: 22px;
+  justify-content: center;
+  gap: 2px;
+  height: 64px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-sm);
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-family: inherit;
   cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
+  transition: color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
 }
-.action-btn:hover {
-  color: var(--brand);
-  background: #e9edff;
+
+.interact-btn:hover {
+  border-color: var(--c-primary-border);
+  color: var(--c-primary);
 }
-.action-btn.active {
-  background: var(--brand-gradient);
-  color: #fff;
+
+.interact-num {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
 }
-.action-static {
-  margin-left: auto;
+
+.interact-label {
+  font-size: var(--fs-xs);
+}
+
+.interact-btn.active {
+  background: var(--c-like-weak);
+  border-color: var(--c-like);
+  color: var(--c-like);
+}
+
+.interact-btn.collect.active {
+  background: var(--c-warning-weak);
+  border-color: var(--c-accent);
+  color: var(--c-warning);
+}
+
+.interact-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  margin-top: var(--sp-3);
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
+}
+
+.interact-meta span {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  color: var(--text-sub);
-  font-size: 13px;
+  gap: 4px;
 }
-.comment-section {
-  margin-top: 20px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 20px 22px 26px;
-}
-.comment-input {
+
+/* ---------- 评论 ---------- */
+.comment-card {
   display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.comment-head-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+
+.side-title {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+}
+
+.side-count {
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
+}
+
+.banned-tip {
+  margin-bottom: var(--sp-3);
+}
+
+.comment-form {
+  display: flex;
+  gap: var(--sp-2);
   align-items: flex-start;
-  gap: 10px;
 }
-.comment-input :deep(.el-textarea__inner) {
-  border-radius: 10px;
+
+.comment-form :deep(.el-textarea__inner) {
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
 }
-.comment-input .el-button {
-  margin-top: 2px;
+
+.comment-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--sp-2);
+  margin-bottom: var(--sp-3);
 }
+
+.comment-tip {
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
+}
+
 .comment-list {
-  margin-top: 18px;
+  border-top: 1px solid var(--border-color);
 }
+
+.comment-empty {
+  padding: var(--sp-6) 0;
+  text-align: center;
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
+}
+
 .comment-item {
   display: flex;
-  gap: 10px;
-  padding: 14px 2px;
-  border-bottom: 1px dashed var(--border);
+  gap: var(--sp-2);
+  padding: var(--sp-3) 0;
+  border-bottom: 1px solid var(--border-color);
 }
+
 .comment-main {
   flex: 1;
   min-width: 0;
 }
-.comment-head {
+
+.comment-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
   flex-wrap: wrap;
+  gap: var(--sp-2);
 }
-.floor {
-  font-size: 12px;
-  color: #fff;
-  background: #d7ddf0;
-  padding: 1px 7px;
-  border-radius: 8px;
+
+.comment-time {
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
 }
-.nick {
-  font-weight: 600;
-  font-size: 14px;
-}
-.time {
-  font-size: 12px;
-  color: var(--text-sub);
-}
-.ops {
+
+.comment-ops {
   margin-left: auto;
 }
+
 .comment-content {
-  margin-top: 6px;
-  font-size: 14.5px;
-  line-height: 1.7;
+  margin: var(--sp-1) 0 0;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+  color: var(--text-body);
   word-break: break-word;
   white-space: pre-wrap;
 }
-.pager {
-  margin-top: 18px;
+
+.comment-pager {
   justify-content: center;
+  margin-top: var(--sp-3);
 }
-/* ---------- 移动端适配 ---------- */
-@media (max-width: 640px) {
-  .head {
-    padding: 16px 14px;
-    border-radius: 14px;
+
+/* ---------- 相关推荐 ---------- */
+.related-card {
+  margin-top: var(--sp-4);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.related-head {
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.related-title {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+}
+
+/* ---------- 移动端吸底操作条 ---------- */
+.mobile-actions {
+  display: none;
+}
+
+@media (max-width: 1279px) {
+  .detail-shell {
+    grid-template-columns: var(--left-w) minmax(0, 1fr);
   }
+
+  .detail-side {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 959px) {
+  .detail-shell {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--sp-3) var(--sp-4) calc(72px + env(safe-area-inset-bottom));
+  }
+
+  .detail-left {
+    display: none;
+  }
+
+  .detail-side {
+    grid-column: auto;
+  }
+
+  .article-card,
+  .content-card {
+    padding: var(--sp-4);
+  }
+
   .title {
-    font-size: 19px;
-    margin: 10px 0 12px;
+    font-size: var(--fs-lg);
   }
-  .author-line {
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .head-ops {
-    margin-left: 0;
-    width: 100%;
-    display: flex;
-    gap: 8px;
-  }
+
   .gallery {
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
   }
+
   .gallery-img {
     height: 110px;
   }
-  .content-card {
-    padding: 16px 14px;
-    border-radius: 14px;
+
+  .mobile-actions {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 60;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    height: calc(56px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--bg-elevated);
+    border-top: 1px solid var(--border-color);
   }
-  .action-bar {
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 12px 14px;
+
+  .mobile-actions button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border: 0;
+    background: transparent;
+    color: var(--text-tertiary);
+    font-family: inherit;
+    font-size: var(--fs-xs);
+    cursor: pointer;
   }
-  .action-btn {
-    padding: 8px 16px;
-    font-size: 13.5px;
+
+  .mobile-actions button .el-icon {
+    font-size: 20px;
   }
-  .action-static {
-    margin-left: 0;
-    width: 100%;
+
+  .mobile-actions button.active {
+    color: var(--c-like);
   }
-  .comment-section {
-    padding: 16px 14px 20px;
-    border-radius: 14px;
+
+  .mobile-actions button:nth-child(2).active {
+    color: var(--c-warning);
   }
-  .comment-input {
-    flex-wrap: wrap;
-  }
-  .comment-input .el-button {
-    width: 100%;
-    margin-top: 8px;
-  }
-}
-/* 封禁提示条 */
-.banned-tip {
-  margin-bottom: 12px;
-  border-radius: 10px;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
-  <!-- 移动端底部 Tab（<960 显示）：首页 / 消息 / 发帖 / 我的 -->
-  <nav class="tabbar" aria-label="主导航">
+  <!-- 移动端底部 Tab（<960 显示）：首页 / 消息 / 发帖 / 我的；详情页让位给吸底操作条 -->
+  <nav v-if="!hidden" class="tabbar" aria-label="主导航">
     <router-link to="/" class="tab" :class="{ active: route.name === 'home' }">
       <el-icon><HomeFilled /></el-icon>
       <span>首页</span>
@@ -22,11 +22,13 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { HomeFilled, ChatDotRound, EditPen, User } from '@element-plus/icons-vue'
 import { totalBadge } from '../store/badge'
 
 const route = useRoute()
+const hidden = computed(() => route.name === 'post-detail')
 </script>
 
 <style scoped>
