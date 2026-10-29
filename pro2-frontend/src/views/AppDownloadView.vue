@@ -19,7 +19,7 @@
         <p class="hero-meta">
           版本 {{ version.latestVersion || '1.2.0-alpha.1' }}
           <span class="dot">·</span> Android 8.0+
-          <span class="dot">·</span> 约 5MB
+          <span class="dot">·</span> 约 3.8MB
           <span class="dot">·</span> 无需应用商店
         </p>
         <p v-if="isApp()" class="in-app-tip">你正在 App 内浏览，可把链接发给朋友。</p>

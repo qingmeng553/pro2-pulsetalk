@@ -10,6 +10,10 @@
         <el-icon><User /></el-icon>
         <span>我的</span>
       </button>
+      <button class="side-link" @click="goApp">
+        <el-icon><Iphone /></el-icon>
+        <span>下载 App</span>
+      </button>
     </div>
 
     <div class="side-group">
@@ -50,7 +54,7 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { HomeFilled, User } from '@element-plus/icons-vue'
+import { HomeFilled, User, Iphone } from '@element-plus/icons-vue'
 import { homeState, setActiveCategory, ensureHomeData } from '../store/home'
 import { uiState } from '../store/ui'
 import { isLoggedIn, openLoginDialog } from '../store/user'
@@ -93,6 +97,11 @@ function goMine() {
   } else {
     openLoginDialog(() => router.push('/profile'))
   }
+}
+
+function goApp() {
+  uiState.sidebarOpen = false
+  router.push('/app')
 }
 
 function pickCategory(id) {
