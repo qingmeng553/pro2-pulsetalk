@@ -47,13 +47,6 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
-        <!-- 主页简介 Markdown 服务端消毒 -->
-        <dependency>
-            <groupId>org.jsoup</groupId>
-            <artifactId>jsoup</artifactId>
-            <version>1.17.2</version>
-        </dependency>
-
         <!-- ===================== Redis(Spring Data Redis + Lettuce) ===================== -->
         <!-- Sa-Token 的 Redis 会话存储需要 Spring Data Redis 提供 RedisConnectionFactory -->
         <dependency>

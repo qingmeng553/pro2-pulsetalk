@@ -17,7 +17,7 @@
         </div>
 
         <!-- 关系操作区 -->
-        <div class="u-actions">
+        <div v-if="!previewMode" class="u-actions">
           <!-- 游客：仅登录引导 -->
           <template v-if="!isLoggedIn">
             <el-button type="primary" round @click="openLoginDialog()">登录后可互动</el-button>
@@ -72,7 +72,6 @@
               <el-button plain round @click="unblock">解除拉黑</el-button>
             </template>
 
-            <!-- 拉黑入口(好友/无关系/申请中时均可) -->
             <el-button
               v-if="['FRIEND', 'NONE', 'PENDING_SENT'].includes(profile.relation)"
               plain
@@ -82,34 +81,50 @@
             >
               拉黑
             </el-button>
+
+            <!-- 举报入口 -->
+            <el-dropdown
+              v-if="profile.relation !== 'SELF' && !previewMode"
+              trigger="click"
+              class="more-menu"
+              @command="onMenu"
+            >
+              <el-button plain round>···</el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="report">举报主页</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </div>
       </template>
     </div>
 
-    <!-- TA 的帖子 -->
-    <div class="u-posts" v-if="profile">
-      <div class="section-title">{{ profile.nickname }} 的帖子</div>
-      <div v-if="userPosts.length" class="post-grid">
-        <PostCard v-for="p in userPosts" :key="p.id" :post="p" />
-      </div>
-      <div v-else class="empty-tip">TA 还没有发布过帖子</div>
-      <div v-if="userPosts.length && userPosts.length < userTotal" class="load-more">
-        <el-button :loading="postsLoading" round @click="loadPosts">加载更多</el-button>
-      </div>
+    <!-- 可配置主页 -->
+    <div class="u-space" v-if="profile && layout" v-loading="spaceLoading">
+      <SpaceRenderer
+        :layout="layout"
+        :user="profile"
+        :stats="space?.stats || {}"
+        :hidden-modules="space?.hiddenModules || []"
+        :preview="previewMode"
+        hide-identity
+      />
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import AdminBadge from '../components/AdminBadge.vue'
-import PostCard from '../components/PostCard.vue'
 import MiniTag from '../components/MiniTag.vue'
+import SpaceRenderer from '../components/space/SpaceRenderer.vue'
 import { resolveAssetUrl } from '../utils/asset'
-import { apiUserProfile, apiUserPosts, apiFriendRequest, apiFriendAccept, apiFriendReject, apiFriendRemove, apiBlacklistAdd, apiBlacklistRemove } from '../api/relation'
+import { apiUserProfile, apiFriendRequest, apiFriendAccept, apiFriendReject, apiFriendRemove, apiBlacklistAdd, apiBlacklistRemove } from '../api/relation'
+import { apiSpace, apiReportSpace } from '../api/space'
 import { isLoggedIn, openLoginDialog } from '../store/user'
 import { formatTime } from '../utils/format'
 
@@ -118,35 +133,30 @@ const targetId = () => route.params.id
 
 const profile = ref(null)
 const loading = ref(false)
-const userPosts = ref([])
-const userTotal = ref(0)
-const userPage = ref(1)
-const postsLoading = ref(false)
+const space = ref(null)
+const spaceLoading = ref(false)
+const previewLayout = ref(null)
+const previewMode = computed(() => !!route.query.preview)
+const layout = computed(() =>
+  previewMode.value && previewLayout.value ? previewLayout.value : space.value?.layout
+)
 
 async function loadProfile() {
   loading.value = true
   try {
     profile.value = await apiUserProfile(targetId())
-    userPage.value = 1
-    userPosts.value = []
-    await loadPosts(true)
+    await loadSpace()
   } finally {
     loading.value = false
   }
 }
 
-async function loadPosts(reset = false) {
-  postsLoading.value = true
+async function loadSpace() {
+  spaceLoading.value = true
   try {
-    const data = await apiUserPosts(targetId(), {
-      page: reset ? 1 : userPage.value,
-      size: 8
-    })
-    userTotal.value = Number(data.total) || 0
-    userPosts.value = reset ? data.records : [...userPosts.value, ...data.records]
-    if (!reset) userPage.value += 1
+    space.value = await apiSpace(targetId())
   } finally {
-    postsLoading.value = false
+    spaceLoading.value = false
   }
 }
 
@@ -174,7 +184,43 @@ const removeFriend = () => act(() => apiFriendRemove(targetId()), '已删除好�
 const block = () => act(() => apiBlacklistAdd(targetId()), '已拉黑（双向阻断互动，好友关系已解除）', '拉黑后将无法互发私信且自动解除好友，确定吗？')
 const unblock = () => act(() => apiBlacklistRemove(targetId()), '已解除拉黑')
 
-onMounted(loadProfile)
+async function onMenu(command) {
+  if (command !== 'report') return
+  if (!isLoggedIn.value) {
+    openLoginDialog()
+    return
+  }
+  let reason
+  try {
+    const result = await ElMessageBox.prompt('请填写举报原因（200 字内）', '举报主页', {
+      inputType: 'textarea',
+      confirmButtonText: '提交',
+      cancelButtonText: '取消',
+      inputValidator: (v) => (!!v && v.trim().length > 0 && v.trim().length <= 200) || '请填写 1-200 字'
+    })
+    reason = result.value.trim()
+  } catch (e) {
+    return
+  }
+  await apiReportSpace(profile.value.userId, 'profile', reason)
+  ElMessage.success('举报已提交')
+}
+
+function onMessage(event) {
+  if (event.origin !== window.location.origin) return
+  if (event.data?.type === 'space-draft' && event.data.layout) {
+    previewLayout.value = event.data.layout
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('message', onMessage)
+  loadProfile()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('message', onMessage)
+})
 </script>
 
 <style scoped>
@@ -214,6 +260,12 @@ onMounted(loadProfile)
 }
 .u-posts {
   margin-top: 22px;
+}
+.u-space {
+  margin-top: 18px;
+}
+.more-menu {
+  margin-left: 0;
 }
 .post-grid {
   display: grid;

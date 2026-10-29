@@ -11,8 +11,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -207,12 +205,15 @@ public class ProfileLayoutValidator {
             case "bio" -> {
                 ObjectNode out = objectMapper.createObjectNode();
                 String intro = text(data, "intro", 500);
-                // 服务端消毒：只保留纯文本，HTML 标签全部清掉
-                String safe = Jsoup.clean(intro, Safelist.none()).trim();
-                if (safe.length() > 500) {
-                    throw bad("简介最多 500 字");
+                // 保留 Markdown 原文（含换行）；拒绝明显危险片段，最终渲染由前端 DOMPurify 兜底
+                String lower = intro.toLowerCase(Locale.ROOT);
+                if (lower.contains("<script") || lower.contains("<iframe")
+                        || lower.contains("javascript:") || lower.contains("vbscript:")
+                        || lower.contains("data:") || lower.contains("onerror=")
+                        || lower.contains("onload=") || lower.contains("onclick=")) {
+                    throw bad("简介包含非法内容");
                 }
-                out.put("intro", safe);
+                out.put("intro", intro);
                 yield out;
             }
             case "pinned" -> normalizePinned(userId, data);

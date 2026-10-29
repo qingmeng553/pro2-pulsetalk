@@ -11,6 +11,7 @@ const routes = [
   { path: '/post/edit/:id', name: 'post-edit', component: () => import('../views/PostCreateView.vue'), meta: { title: '编辑帖子', requiresAuth: true } },
   { path: '/post/:id', name: 'post-detail', component: () => import('../views/PostDetailView.vue'), meta: { title: '帖子详情' } },
   { path: '/forgot', name: 'forgot', component: () => import('../views/ForgotView.vue'), meta: { title: '找回密码' } },
+  { path: '/profile/space', name: 'profile-space', component: () => import('../views/ProfileSpaceEditor.vue'), meta: { title: '编辑主页', requiresAuth: true } },
   { path: '/profile', name: 'profile', component: () => import('../views/ProfileView.vue'), meta: { title: '个人中心', requiresAuth: true } },
   // 消息 / 聊天 / 他人主页
   { path: '/msg', name: 'msg', component: () => import('../views/MessageCenterView.vue'), meta: { title: '消息', requiresAuth: true } },
@@ -18,6 +19,7 @@ const routes = [
   { path: '/user/:id', name: 'user-profile', component: () => import('../views/UserProfileView.vue'), meta: { title: '个人主页' } },
   { path: '/friends', name: 'friends', component: () => import('../views/FriendManageView.vue'), meta: { title: '好友管理', requiresAuth: true } },
   // 管理端用户表
+  { path: '/admin/space', name: 'admin-space', component: () => import('../views/AdminSpaceView.vue'), meta: { title: '主页举报', requiresAuth: true, adminOnly: true } },
   { path: '/admin/users', name: 'admin-users', component: () => import('../views/UserAdminView.vue'), meta: { title: '用户管理', requiresAuth: true, adminOnly: true } },
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]

@@ -29,6 +29,13 @@
 - 图形验证码 + 同邮箱 60s/每日 10 次 + 同 IP 每小时 20 次 + 错 5 次锁定
 - 密保问题：前端入口已下线，后端接口保留（兼容 1.0.x）
 
+**个人主页（beta1）**
+- 公开主页 `/user/:id`：9 种模块（简介 / 置顶 / 技能 / 作品 / 图集 / 外链 / 帖子 / 数据 / 留言板），开关、排序、整行/半行
+- 10 套主题（8 浅 + 2 深）、8 色板、5 个挂件、头图；保存即生效，乐观锁防覆盖
+- 编辑器 `/profile/space`：双 iframe（Web 1440 / App 390）实时预览
+- 留言板：登录 + 1 分钟 1 条 + 200 字；举报 + 管理员隐藏模块
+- 访问量 Redis 计数，同 IP 5 分钟去重
+
 **管理后台（ADMIN）**
 - 软删除任意帖子 / 评论
 - 全站唯一一条置顶规则帖：设置、替换、取消，管理员可共同编辑
@@ -201,7 +208,8 @@ npm run dev            # 浏览器访问 http://localhost:5173
 | 消息 | `GET /notify/list`、`GET /notify/unread-count`、`POST /notify/read`、`POST /notify/broadcast` |
 | 私聊 | `GET /chat/threads`、`GET /chat/messages/{userId}`、`POST /chat/send/{userId}`、`POST /chat/read/{userId}`、`GET /chat/unread-count` |
 | 关系 | `GET /user/{id}`、`POST /friend/request|accept|reject|remove/{userId}`、`GET /friend/list`、`GET /friend/pending/list`、`POST /blacklist/add|remove/{userId}`、`GET /blacklist/list` |
-| 管理端 | `GET /admin/user/list`、`POST /admin/user/{id}/ban`、`POST /admin/user/{id}/unban`、`DELETE /admin/user/{id}`、`POST /admin/user/{id}/reset-password` |
+| 管理端 | `GET /admin/user/list`、`POST /admin/user/{id}/ban`、`POST /admin/user/{id}/unban`、`DELETE /admin/user/{id}`、`POST /admin/user/{id}/reset-password`、`GET /admin/space/reports`、`POST /admin/space/reports/{id}/handle`、`POST /admin/user/{id}/space/hide` |
+| 主页 | `GET /user/{id}/space`、`PUT /user/profile/space`、`POST /user/profile/image`、`GET/POST /user/{id}/guestbook`、`DELETE /user/guestbook/{id}`、`POST /user/{id}/report` |
 | 探测 | `GET /demo/ping` |
 
 ---
@@ -328,6 +336,7 @@ docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.prod up 
 - 帖子详情已落地：左正文 + 右互动/评论（960~1279 左栏进抽屉、评论仍在右侧），相关推荐，移动端吸底操作条；点赞红心常显（未点亮描边、点亮实心）（S7）
 - 地址收口：图片统一存相对路径 `/files`（后端 `public-endpoint=/files`，Vite/Nginx 反代），历史绝对地址批量迁移（`sql/upgrade-v5.sql`）（S1）
 - 邮箱体系已落地：绑定 / 换绑 / 邮箱验证码找回 / 管理员重置密码，图形码 + 双限流 + 失败锁定；密保找回入口下线（alpha2）
+- 可配置个人主页：9 模块 + 10 主题 + 留言板 + 举报/隐藏 + 双 iframe 编辑器（beta1）
 - 修复：计数同步每 5 分钟会刷新帖子「编辑于」时间（`sql/upgrade-v5.sql` 去掉 `post.update_time` 的 `ON UPDATE`）
 - 账号体系：邮箱绑定 + 验证码找回密码（与密保双通道）
 - 个人主页：模块开关 / 排序 + 主题装扮（参考 B 站空间与 GitHub Profile）

@@ -39,6 +39,12 @@
         <el-button type="primary" round @click="$router.push('/post/create')">
           <el-icon><EditPen /></el-icon>&nbsp;去发帖
         </el-button>
+        <el-button round @click="$router.push('/profile/space')">
+          <el-icon><Setting /></el-icon>&nbsp;编辑主页
+        </el-button>
+        <el-button round @click="$router.push(`/user/${authState.user?.id}`)">
+          <el-icon><User /></el-icon>&nbsp;我的主页
+        </el-button>
         <el-button round @click="$router.push('/friends')">
           <el-icon><User /></el-icon>&nbsp;好友管理
         </el-button>

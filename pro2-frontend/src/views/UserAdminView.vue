@@ -16,6 +16,7 @@
         @clear="load(1)"
       />
       <el-button type="primary" :icon="Search" @click="load(1)">搜索</el-button>
+      <el-button @click="$router.push('/admin/space')">主页举报</el-button>
     </div>
 
     <!-- 桌面端：表格；移动端自动横向滚动 -->
