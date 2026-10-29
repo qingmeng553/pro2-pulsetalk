@@ -88,7 +88,13 @@
 
             <!-- 技能 -->
             <template v-else-if="m.type === 'skills'">
-              <el-input v-model="skillsText" placeholder="逗号分隔，如：Java, Redis, Vue" />
+              <el-input
+                v-model="skillsText"
+                maxlength="200"
+                placeholder="逗号分隔，如：Java, Redis, Vue"
+                @input="onSkillsInput"
+                @blur="formatSkills"
+              />
               <p class="field-tip">最多 20 个，每个 ≤12 字。</p>
             </template>
 
@@ -262,19 +268,33 @@ const contentModules = computed(() =>
   (draft.value?.modules || []).filter((m) => ['bio', 'pinned', 'skills', 'projects', 'gallery', 'links'].includes(m.type))
 )
 
+const skillsText = ref('')
+
 function getModule(type) {
   return draft.value?.modules.find((m) => m.type === type)
 }
 
-const skillsText = computed({
-  get: () => (getModule('skills')?.data || []).join(', '),
-  set: (v) => {
-    const m = getModule('skills')
-    if (m) {
-      m.data = v.split(/[,，]/).map((s) => s.trim()).filter(Boolean).slice(0, 20)
-    }
-  }
-})
+/** 输入过程中只同步到 data，不回写输入框，否则逗号会被 split/join 吃掉 */
+function onSkillsInput(value) {
+  const m = getModule('skills')
+  if (!m) return
+  m.data = value
+    .split(/[,，]/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 20)
+}
+
+function formatSkills() {
+  const m = getModule('skills')
+  if (!m) return
+  skillsText.value = (m.data || []).join(', ')
+}
+
+function syncSkillsText() {
+  const m = getModule('skills')
+  skillsText.value = (m?.data || []).join(', ')
+}
 
 async function load() {
   loading.value = true
@@ -283,6 +303,7 @@ async function load() {
     const space = await apiSpace(me.value.id)
     draft.value = normalizeDraft(space.layout)
     version.value = space.version
+    syncSkillsText()
     await nextTick()
     syncPreview()
   } catch (e) {
