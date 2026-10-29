@@ -19,8 +19,9 @@ request.interceptors.request.use((config) => {
   return config
 })
 
-/** 依据业务 code 分类提示 */
-function notifyByCode(code, msg) {
+/** 依据业务 code 分类提示；silent 请求（登录/注册）由调用方内联展示错误 */
+function notifyByCode(code, msg, silent) {
+  if (silent) return
   if (code === 401) return // 未登录统一走登录弹窗，不额外弹错误
   if (code === 403) ElMessage.warning(msg || '没有权限执行该操作')
   else if (code === 429) ElMessage.warning(msg || '操作太频繁啦，请稍后再试')
@@ -40,7 +41,7 @@ request.interceptors.response.use(
         resetAuth()
         openLoginDialog()
       }
-      notifyByCode(body.code, body.message)
+      notifyByCode(body.code, body.message, response.config && response.config.silent)
       return Promise.reject({ code: body.code, message: body.message })
     }
     return body
@@ -52,7 +53,11 @@ request.interceptors.response.use(
       resetAuth()
       openLoginDialog()
     }
-    notifyByCode(status || (body && body.code), (body && body.message) || error.message)
+    notifyByCode(
+      status || (body && body.code),
+      (body && body.message) || error.message,
+      error.config && error.config.silent
+    )
     return Promise.reject(error)
   }
 )

@@ -2,11 +2,11 @@ import request from './request'
 
 /** 用户认证相关接口(返回体已被拦截器解包为 data) */
 
-// POST /auth/register 用户注册
-export const apiRegister = (data) => request.post('/auth/register', data)
+// POST /auth/register 用户注册（config 可传 { silent: true }，错误由弹窗内联展示）
+export const apiRegister = (data, config) => request.post('/auth/register', data, config)
 
 // POST /auth/login 登录，返回 sa-token 与用户信息
-export const apiLogin = (data) => request.post('/auth/login', data)
+export const apiLogin = (data, config) => request.post('/auth/login', data, config)
 
 // POST /auth/logout 登出(需token)
 export const apiLogout = () => request.post('/auth/logout')

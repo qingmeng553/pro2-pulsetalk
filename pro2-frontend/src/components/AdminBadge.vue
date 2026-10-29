@@ -13,6 +13,8 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
+  flex: none;
+  white-space: nowrap;
   margin-left: 5px;
   padding: 1px 7px;
   font-size: 12px;

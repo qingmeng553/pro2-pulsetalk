@@ -1,136 +1,192 @@
 <template>
-  <!-- 登录/注册/忘记密码 弹窗：游客触发写操作(点赞/收藏/发帖/评论/上传)时弹出 -->
+  <!-- 登录 / 注册弹窗：游客触发写操作时弹出；桌面居中弹窗，移动端底部抽屉 -->
   <el-dialog
     v-model="authState.dialogVisible"
-    width="420px"
+    class="pt-auth"
+    width="420"
     align-center
     :show-close="true"
+    :close-on-click-modal="!loading"
+    :close-on-press-escape="!loading"
     @close="onClose"
+    @opened="onOpened"
   >
     <template #header>
-      <div class="dlg-title">
-        {{ mode === 'login' ? '登录 PulseTalk' : mode === 'register' ? '注册 PulseTalk 账号' : '找回密码' }}
-      </div>
+      <h2 class="pt-auth__title">{{ isRegister ? '注册 PulseTalk' : '登录 PulseTalk' }}</h2>
     </template>
 
-    <!-- ============ 登录 / 注册 ============ -->
-    <el-tabs v-if="mode !== 'forgot'" v-model="mode" stretch>
-      <el-tab-pane label="登录" name="login">
-        <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" size="large" @keyup.enter="onLogin">
-          <el-form-item prop="username">
-            <el-input v-model="loginForm.username" placeholder="用户名" :prefix-icon="User" clearable />
-          </el-form-item>
-          <el-form-item prop="password">
-            <el-input v-model="loginForm.password" type="password" placeholder="密码" :prefix-icon="Lock" show-password />
-          </el-form-item>
-          <el-button type="primary" class="submit-btn" size="large" :loading="loading" @click="onLogin">
-            登 录
-          </el-button>
-          <div class="forgot-line">
-            <el-link type="primary" :underline="false" @click="toForgot">忘记密码？</el-link>
-          </div>
-        </el-form>
-      </el-tab-pane>
-
-      <el-tab-pane label="注册" name="register">
-        <el-form ref="registerFormRef" :model="registerForm" :rules="registerRules" size="large" @keyup.enter="onRegister">
-          <el-form-item prop="username">
-            <el-input v-model="registerForm.username" placeholder="用户名(3-20位字母数字下划线)" :prefix-icon="User" clearable />
-          </el-form-item>
-          <el-form-item prop="nickname">
-            <el-input v-model="registerForm.nickname" placeholder="昵称(选填)" :prefix-icon="Postcard" clearable />
-          </el-form-item>
-          <el-form-item prop="password">
-            <el-input v-model="registerForm.password" type="password" placeholder="密码(6-32位)" :prefix-icon="Lock" show-password />
-          </el-form-item>
-          <el-button type="primary" class="submit-btn" size="large" :loading="loading" @click="onRegister">
-            注 册
-          </el-button>
-        </el-form>
-      </el-tab-pane>
-    </el-tabs>
-
-    <!-- ============ 忘记密码：通过个人密保问题答案找回 ============ -->
-    <div v-else class="forgot-pane">
-      <!-- 第一步：用户名 → 取密保问题 -->
-      <el-form v-if="!forgotQuestion" :model="forgotForm" size="large" @keyup.enter="loadForgotQuestion">
-        <p class="forgot-tip">输入账号后，通过你设置的<b>个人密保问题</b>答案验证身份，即可重置密码。</p>
-        <el-form-item>
-          <el-input v-model="forgotForm.username" placeholder="请输入用户名" :prefix-icon="User" clearable />
-        </el-form-item>
-        <el-button type="primary" class="submit-btn" size="large" :loading="loading" @click="loadForgotQuestion">
-          下一步
-        </el-button>
-        <div class="forgot-line">
-          <el-link :underline="false" @click="mode = 'login'">返回登录</el-link>
-        </div>
-      </el-form>
-
-      <!-- 第二步：回答问题 + 设置新密码 -->
-      <el-form v-else :model="forgotForm" size="large" @keyup.enter="onForgotReset">
-        <el-form-item label="密保问题">
-          <div class="question-box">{{ forgotQuestion }}</div>
-        </el-form-item>
-        <el-form-item>
-          <el-input v-model="forgotForm.answer" placeholder="请输入密保答案(不区分大小写)" clearable />
-        </el-form-item>
-        <el-form-item>
-          <el-input v-model="forgotForm.newPassword" type="password" placeholder="设置新密码(6-32位)" show-password />
-        </el-form-item>
-        <el-form-item>
-          <el-input v-model="forgotForm.confirmPassword" type="password" placeholder="确认新密码" show-password />
-        </el-form-item>
-        <el-button type="primary" class="submit-btn" size="large" :loading="loading" @click="onForgotReset">
-          重置密码
-        </el-button>
-        <div class="forgot-line">
-          <el-link :underline="false" @click="forgotQuestion = ''">换个账号</el-link>
-          <el-link :underline="false" class="ml" @click="mode = 'login'">返回登录</el-link>
-        </div>
-      </el-form>
+    <!-- 分段切换：登录 / 注册 -->
+    <div class="pt-auth__seg" role="group" aria-label="登录或注册">
+      <button
+        type="button"
+        class="pt-auth__seg-btn"
+        :class="{ active: !isRegister }"
+        :aria-pressed="!isRegister"
+        @click="switchMode('login')"
+      >
+        登录
+      </button>
+      <button
+        type="button"
+        class="pt-auth__seg-btn"
+        :class="{ active: isRegister }"
+        :aria-pressed="isRegister"
+        @click="switchMode('register')"
+      >
+        注册
+      </button>
     </div>
+
+    <el-form
+      ref="formRef"
+      :model="form"
+      :rules="rules"
+      :show-message="false"
+      size="large"
+      @submit.prevent
+      @keyup.enter="onSubmit"
+    >
+      <el-form-item prop="username">
+        <el-input
+          ref="usernameRef"
+          v-model.trim="form.username"
+          placeholder="用户名"
+          :prefix-icon="User"
+          autocomplete="username"
+          maxlength="20"
+          clearable
+          @input="clearError"
+          @blur="checkField('username')"
+        />
+      </el-form-item>
+
+      <el-form-item v-if="isRegister" prop="nickname">
+        <el-input
+          v-model.trim="form.nickname"
+          placeholder="昵称（选填）"
+          :prefix-icon="Postcard"
+          maxlength="20"
+          clearable
+          @input="clearError"
+        />
+      </el-form-item>
+
+      <el-form-item prop="password">
+        <el-input
+          v-model="form.password"
+          type="password"
+          show-password
+          placeholder="密码"
+          :prefix-icon="Lock"
+          :autocomplete="isRegister ? 'new-password' : 'current-password'"
+          maxlength="32"
+          @input="clearError"
+          @blur="checkField('password')"
+        />
+      </el-form-item>
+
+      <!-- 错误提示：固定预留一行高度，出现/消失都不撑动按钮 -->
+      <p class="pt-auth__error" role="alert" aria-live="polite">{{ errorText }}</p>
+
+      <el-button
+        type="primary"
+        class="pt-auth__submit"
+        size="large"
+        :loading="loading"
+        @click="onSubmit"
+      >
+        {{ isRegister ? '注册' : '登录' }}
+      </el-button>
+    </el-form>
+
+    <p v-if="isRegister" class="pt-auth__hint">注册成功后自动登录</p>
   </el-dialog>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { computed, nextTick, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { User, Lock, Postcard } from '@element-plus/icons-vue'
 import { authState, applyLogin, refreshUser } from '../store/user'
 import { setBadges } from '../store/badge'
-import {
-  apiLogin, apiRegister, apiCurrentUser,
-  apiForgotQuestion, apiForgotReset
-} from '../api/auth'
+import { apiLogin, apiRegister, apiCurrentUser } from '../api/auth'
 
-const mode = ref('login')
+const isRegister = ref(false)
 const loading = ref(false)
-const loginFormRef = ref()
-const registerFormRef = ref()
+const errorText = ref('')
+const formRef = ref()
+const usernameRef = ref()
 
-const loginForm = reactive({ username: '', password: '' })
-const registerForm = reactive({ username: '', nickname: '', password: '' })
+const form = reactive({ username: '', nickname: '', password: '' })
 
-// 忘记密码
-const forgotForm = reactive({ username: '', answer: '', newPassword: '', confirmPassword: '' })
-const forgotQuestion = ref('')
+// 规则与后端 RegisterDTO 保持一致：3-20 位字母/数字/下划线、密码 6-32 位
+const rules = computed(() => {
+  const username = [{ required: true, message: '请输入用户名', trigger: 'blur' }]
+  const password = [{ required: true, message: '请输入密码', trigger: 'blur' }]
+  if (isRegister.value) {
+    username.push({
+      pattern: /^[a-zA-Z0-9_]{3,20}$/,
+      message: '用户名需为3-20位字母/数字/下划线',
+      trigger: 'blur'
+    })
+    password.push({ min: 6, max: 32, message: '密码长度需在6-32位之间', trigger: 'blur' })
+  }
+  return { username, password }
+})
 
-const loginRules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+/** 取第一条校验错误文案（Element 的 validate 会抛字段对象） */
+function firstError(e) {
+  if (!e) return '请检查输入内容'
+  if (typeof e === 'string') return e
+  if (Array.isArray(e)) return firstError(e[0])
+  if (e.message) return e.message
+  const first = Object.values(e)[0]
+  return firstError(first) || '请检查输入内容'
 }
-const registerRules = {
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { pattern: /^[a-zA-Z0-9_]{3,20}$/, message: '3-20位字母/数字/下划线', trigger: 'blur' }
-  ],
-  password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 32, message: '密码长度6-32位', trigger: 'blur' }
-  ]
+
+/** 请求错误 -> 人话；后端 message 已经是中文就直接用 */
+function messageOf(e, fallback) {
+  const raw = e && typeof e === 'object' && typeof e.message === 'string' ? e.message : ''
+  if (!raw) return fallback
+  // axios / 代理层的技术文案不直接给用户看
+  if (/^request failed with status code|network\s*error|timeout|failed to fetch/i.test(raw)) {
+    return fallback
+  }
+  return raw
 }
 
-/** 关闭弹窗时复位 */
+function clearError() {
+  if (errorText.value) errorText.value = ''
+}
+
+/** 失焦即时校验：结果落在固定错误行 */
+function checkField(prop) {
+  const f = formRef.value
+  if (!f) return
+  f.validateField(prop).catch((e) => {
+    errorText.value = firstError(e)
+  })
+}
+
+function switchMode(mode) {
+  const next = mode === 'register'
+  if (next === isRegister.value) return
+  isRegister.value = next
+  errorText.value = ''
+  nextTick(() => {
+    formRef.value?.clearValidate()
+    usernameRef.value?.focus()
+  })
+}
+
+/** 打开动画结束后：桌面自动聚焦用户名（移动端不主动弹键盘） */
+function onOpened() {
+  if (window.matchMedia('(min-width: 640px)').matches) {
+    usernameRef.value?.focus()
+  }
+}
+
+/** 关闭时复位敏感字段与状态 */
 function onClose() {
   authState.dialogVisible = false
   // 未登录时用户主动关闭：清掉待办，避免残留旧闭包
@@ -138,58 +194,51 @@ function onClose() {
   if (!authState.user) {
     authState.pendingAction = null
   }
+  loading.value = false
+  errorText.value = ''
+  form.password = ''
+  isRegister.value = false
 }
 
-/** 切到忘记密码 */
-function toForgot() {
-  forgotQuestion.value = ''
-  forgotForm.username = loginForm.username || ''
-  forgotForm.answer = ''
-  forgotForm.newPassword = ''
-  forgotForm.confirmPassword = ''
-  mode.value = 'forgot'
-}
+async function onSubmit() {
+  if (loading.value) return
+  loading.value = true
+  errorText.value = ''
 
-/** 登录 */
-async function onLogin() {
   try {
-    await loginFormRef.value.validate()
+    await formRef.value.validate()
   } catch (e) {
+    errorText.value = firstError(e)
+    loading.value = false
     return
   }
-  loading.value = true
+
   try {
-    const data = await apiLogin(loginForm)
+    const data = isRegister.value ? await registerThenLogin() : await login()
     await afterAuth(data)
-    ElMessage.success(`欢迎回来，${data.user.nickname || data.user.username}`)
+    ElMessage.success(
+      isRegister.value
+        ? '注册成功，已自动登录'
+        : `欢迎回来，${data.user.nickname || data.user.username}`
+    )
   } catch (e) {
-    /* 错误已由拦截器提示 */
+    errorText.value = messageOf(e, isRegister.value ? '注册失败，请稍后再试' : '登录失败，请稍后再试')
   } finally {
     loading.value = false
   }
 }
 
-/** 注册（成功后自动登录） */
-async function onRegister() {
-  try {
-    await registerFormRef.value.validate()
-  } catch (e) {
-    return
-  }
-  loading.value = true
-  try {
-    await apiRegister(registerForm)
-    const data = await apiLogin({
-      username: registerForm.username,
-      password: registerForm.password
-    })
-    await afterAuth(data)
-    ElMessage.success('注册成功，已自动登录')
-  } catch (e) {
-    /* 错误已由拦截器提示 */
-  } finally {
-    loading.value = false
-  }
+// 登录 / 注册都静默请求：错误由弹窗内固定错误行展示，不再叠全屏 toast
+function login() {
+  return apiLogin({ username: form.username, password: form.password }, { silent: true })
+}
+
+async function registerThenLogin() {
+  await apiRegister(
+    { username: form.username, nickname: form.nickname, password: form.password },
+    { silent: true }
+  )
+  return login()
 }
 
 /** 登录成功统一处理：写状态 → 校准用户 → 执行待办 */
@@ -207,94 +256,125 @@ async function afterAuth(data) {
     pendingAction()
   }
 }
-
-/** 忘记密码第一步：查询密保问题 */
-async function loadForgotQuestion() {
-  const username = (forgotForm.username || '').trim()
-  if (!username) {
-    ElMessage.warning('请输入用户名')
-    return
-  }
-  loading.value = true
-  try {
-    const data = await apiForgotQuestion(username)
-    if (!data || !data.hasQuestion) {
-      ElMessage.warning('该账号未设置密保问题，暂时无法自助找回，请联系管理员')
-      return
-    }
-    forgotQuestion.value = data.question
-  } catch (e) {
-    /* 错误已由拦截器提示 */
-  } finally {
-    loading.value = false
-  }
-}
-
-/** 忘记密码第二步：校验答案并重置密码 */
-async function onForgotReset() {
-  const { username, answer, newPassword, confirmPassword } = forgotForm
-  if (!answer || !answer.trim()) {
-    ElMessage.warning('请输入密保答案')
-    return
-  }
-  if (!newPassword || newPassword.length < 6 || newPassword.length > 32) {
-    ElMessage.warning('新密码长度需在6-32位之间')
-    return
-  }
-  if (newPassword !== confirmPassword) {
-    ElMessage.warning('两次输入的新密码不一致')
-    return
-  }
-  loading.value = true
-  try {
-    await apiForgotReset(username.trim(), answer, newPassword)
-    ElMessage.success('密码已重置，请用新密码登录')
-    loginForm.username = username.trim()
-    loginForm.password = ''
-    forgotQuestion.value = ''
-    mode.value = 'login'
-  } catch (e) {
-    /* 错误已由拦截器提示 */
-  } finally {
-    loading.value = false
-  }
-}
 </script>
 
 <style scoped>
-.dlg-title {
-  font-weight: 800;
-  font-size: 17px;
+.pt-auth__title {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  color: var(--text-primary);
 }
-.submit-btn {
+
+.pt-auth__seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-1);
+  padding: var(--sp-1);
+  margin-bottom: var(--sp-5);
+  background: var(--c-100);
+  border-radius: var(--r-sm);
+}
+
+.pt-auth__seg-btn {
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: var(--r-sm);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.pt-auth__seg-btn:hover {
+  color: var(--text-primary);
+}
+
+.pt-auth__seg-btn.active {
+  background: var(--bg-elevated);
+  color: var(--c-primary);
+  font-weight: var(--fw-bold);
+}
+
+.pt-auth__error {
+  min-height: 20px;
+  margin: 0 0 var(--sp-2);
+  font-size: var(--fs-xs);
+  line-height: 20px;
+  color: var(--c-danger);
+}
+
+.pt-auth__submit {
   width: 100%;
-  margin-top: 4px;
+  margin-top: var(--sp-1);
 }
-.forgot-line {
-  margin-top: 12px;
+
+.pt-auth__hint {
+  margin: var(--sp-3) 0 0;
   text-align: center;
-  font-size: 13px;
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
 }
-.forgot-pane {
-  padding-top: 4px;
+</style>
+
+<style>
+/* 弹窗外壳：Element Plus 会把 dialog teleport 到 body，只能用全局样式，前缀限定 .pt-auth */
+.pt-auth.el-dialog {
+  padding: 0;
 }
-.forgot-tip {
-  margin: 0 0 12px;
-  font-size: 13px;
-  color: var(--text-sub);
-  line-height: 1.7;
+
+.pt-auth .el-dialog__header {
+  padding: var(--sp-5) var(--sp-6) 0;
+  margin: 0;
 }
-.question-box {
-  width: 100%;
-  background: #f4f6fb;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 9px 12px;
-  font-size: 14px;
-  color: var(--text);
-  line-height: 1.6;
+
+.pt-auth .el-dialog__body {
+  padding: var(--sp-4) var(--sp-6) var(--sp-6);
 }
-.ml {
-  margin-left: 12px;
+
+.pt-auth .el-dialog__headerbtn {
+  top: var(--sp-4);
+  right: var(--sp-4);
+  width: 32px;
+  height: 32px;
+}
+
+.pt-auth .el-dialog__headerbtn .el-dialog__close {
+  color: var(--text-secondary);
+}
+
+.pt-auth .el-form-item {
+  margin-bottom: var(--sp-3);
+}
+
+/* 移动端（< 640）：底部抽屉形态 + iOS 安全区 */
+@media (max-width: 639px) {
+  .pt-auth.el-dialog {
+    position: fixed;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100% !important;
+    max-width: 100%;
+    max-height: 90vh;
+    margin: 0 !important;
+    overflow-y: auto;
+    border-radius: var(--r-md) var(--r-md) 0 0;
+  }
+
+  .pt-auth .el-dialog__header {
+    padding: var(--sp-5) var(--sp-5) 0;
+  }
+
+  .pt-auth .el-dialog__body {
+    padding: var(--sp-4) var(--sp-5) calc(var(--sp-6) + env(safe-area-inset-bottom));
+  }
 }
 </style>
