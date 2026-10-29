@@ -85,30 +85,28 @@
       </el-form>
     </div>
 
-    <!-- 3) 密保问题：已设置则不再展示设置渠道 -->
+    <!-- 3) 邮箱：alpha2 后唯一自助找回通道（密保入口下线） -->
     <div class="card">
-      <div class="card-title">🛡️ 个人密保问题</div>
+      <div class="card-title">📮 邮箱</div>
 
-      <div v-if="hasQuestion" class="done-line">
-        <MiniTag icon="🔒" text="已设置密保问题" tone="success" />
-        <span class="done-tip">忘记密码时可通过密保答案自助重置密码</span>
+      <div v-if="emailBound" class="email-row">
+        <div class="email-main">
+          <div class="email-line">
+            <span class="email-val">{{ maskEmail(authState.user?.email) }}</span>
+            <MiniTag text="已验证" tone="success" />
+          </div>
+          <p class="hint">可用于找回密码；换绑需要当前密码 + 新邮箱验证码，旧邮箱会收到通知。</p>
+        </div>
+        <el-button @click="openEmailDialog('rebind')">更换邮箱</el-button>
       </div>
 
-      <template v-else>
-        <p class="hint">设置一个只有你知道答案的问题，忘记密码时可自助重置（问题与答案均由你自定义，答案不区分大小写且加密存储）</p>
-        <el-form :model="sqForm" label-width="88px" class="card-form">
-          <el-form-item label="密保问题">
-            <el-input v-model="sqForm.question" maxlength="100" show-word-limit placeholder="例如：我第一只宠物叫什么？" />
-          </el-form-item>
-          <el-form-item label="密保答案">
-            <el-input v-model="sqForm.answer" maxlength="64" show-word-limit placeholder="请输入答案" />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" :loading="savingSq" @click="saveSecurityQuestion">保存密保问题</el-button>
-          </el-form-item>
-        </el-form>
-      </template>
+      <div v-else class="email-main">
+        <p class="hint">未绑定邮箱。忘记密码将无法自助找回，只能联系管理员。</p>
+        <el-button type="primary" @click="openEmailDialog('bind')">绑定邮箱</el-button>
+      </div>
     </div>
+
+    <EmailBindDialog v-model="emailDialogVisible" :mode="emailMode" @success="onEmailBound" />
 
     <p class="page-hint">头像将上传至 MinIO 对象存储并返回可访问 URL</p>
   </div>
@@ -120,12 +118,12 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import AdminBadge from '../components/AdminBadge.vue'
 import MiniTag from '../components/MiniTag.vue'
+import EmailBindDialog from '../components/EmailBindDialog.vue'
 import { resolveAssetUrl } from '../utils/asset'
-import { authState, resetAuth, refreshUser } from '../store/user'
+import { authState, resetAuth, refreshUser, openLoginDialog } from '../store/user'
 import {
   apiUploadAvatar, apiLogout, apiCurrentUser,
-  apiUpdateProfile, apiUpdatePassword,
-  apiSetSecurityQuestion
+  apiUpdateProfile, apiUpdatePassword
 } from '../api/auth'
 
 const router = useRouter()
@@ -133,7 +131,7 @@ const fileInput = ref()
 const uploading = ref(false)
 
 const isAdmin = computed(() => authState.user?.role === 'ADMIN')
-const hasQuestion = computed(() => !!authState.user?.hasSecurityQuestion)
+const emailBound = computed(() => !!authState.user?.email)
 
 // 改名
 const nickname = ref(authState.user?.nickname || '')
@@ -143,9 +141,32 @@ const savingNick = ref(false)
 const pwdForm = reactive({ oldPassword: '', newPassword: '', confirmPassword: '' })
 const savingPwd = ref(false)
 
-// 密保
-const sqForm = reactive({ question: '', answer: '' })
-const savingSq = ref(false)
+// 邮箱绑定 / 换绑
+const emailDialogVisible = ref(false)
+const emailMode = ref('bind')
+
+function maskEmail(email) {
+  if (!email) return ''
+  const at = email.indexOf('@')
+  if (at <= 0) return '***'
+  return `${email.charAt(0)}***${email.substring(at)}`
+}
+
+function openEmailDialog(mode) {
+  emailMode.value = mode
+  emailDialogVisible.value = true
+}
+
+/** 绑定/换绑成功后刷新权威用户信息（email/emailVerified） */
+async function onEmailBound() {
+  try {
+    const fresh = await apiCurrentUser()
+    refreshUser(fresh)
+    nickname.value = fresh.nickname || ''
+  } catch (e) {
+    /* 静默 */
+  }
+}
 
 function pickAvatar() {
   fileInput.value && fileInput.value.click()
@@ -210,36 +231,20 @@ async function savePassword() {
   savingPwd.value = true
   try {
     await apiUpdatePassword(oldPassword, newPassword)
-    ElMessage.success('密码修改成功')
+    // 后端改密成功后会踢掉全部会话，前端同步退出并弹登录
+    resetAuth()
     pwdForm.oldPassword = ''
     pwdForm.newPassword = ''
     pwdForm.confirmPassword = ''
+    ElMessage.success('密码已修改，请用新密码重新登录')
+    openLoginDialog()
+    router.push('/')
   } finally {
     savingPwd.value = false
   }
 }
 
-/** 设置密保问题(仅可设置一次，成功后设置渠道隐藏) */
-async function saveSecurityQuestion() {
-  const { question, answer } = sqForm
-  if (!question || !question.trim()) {
-    ElMessage.warning('请输入密保问题')
-    return
-  }
-  if (!answer || !answer.trim()) {
-    ElMessage.warning('请输入密保答案')
-    return
-  }
-  savingSq.value = true
-  try {
-    await apiSetSecurityQuestion(question.trim(), answer.trim())
-    const fresh = await apiCurrentUser()
-    refreshUser(fresh)
-    ElMessage.success('密保问题设置成功，忘记密码时可自助找回')
-  } finally {
-    savingSq.value = false
-  }
-}
+/** 设置密保问题已下线（alpha2 起找回只走邮箱，后端接口保留） */
 
 function logout() {
   ElMessageBox.confirm('确定要退出登录吗？', '提示', { type: 'warning' })
@@ -257,7 +262,7 @@ function logout() {
 }
 
 onMounted(async () => {
-  // 刷新一次权威用户信息(密保状态/封禁状态实时)
+  // 刷新一次权威用户信息(邮箱/封禁状态实时)
   try {
     const fresh = await apiCurrentUser()
     refreshUser(fresh)
@@ -357,6 +362,26 @@ onMounted(async () => {
   gap: 10px;
   align-items: center;
 }
+.email-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.email-main {
+  min-width: 0;
+}
+.email-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.email-val {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--text);
+}
 .card-form {
   max-width: 460px;
 }
@@ -398,6 +423,10 @@ onMounted(async () => {
     gap: 8px;
   }
   .row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .email-row {
     flex-direction: column;
     align-items: stretch;
   }

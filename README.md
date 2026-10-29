@@ -23,15 +23,17 @@
 - 聊天记录保留 7 天，到期由定时任务清理
 
 **账号安全**
-- 修改昵称、修改密码（校验原密码）
-- 个人密保问题（问题与答案均为用户自定义，答案加密存储）
-- 忘记密码：输入账号取回本人密保问题，答对即可重置密码，带限流保护
+- 修改昵称、修改密码（校验原密码；改密后踢掉全部会话并发送邮箱安全通知）
+- 邮箱绑定 / 换绑（当前密码 + 验证码；一个邮箱只能绑一个账号，不支持解绑）
+- 忘记密码：邮箱验证码找回；未绑定邮箱只能联系管理员，管理员可在后台「重置密码」
+- 图形验证码 + 同邮箱 60s/每日 10 次 + 同 IP 每小时 20 次 + 错 5 次锁定
+- 密保问题：前端入口已下线，后端接口保留（兼容 1.0.x）
 
 **管理后台（ADMIN）**
 - 软删除任意帖子 / 评论
 - 全站唯一一条置顶规则帖：设置、替换、取消，管理员可共同编辑
 - 向全体用户发送官方消息
-- 用户管理：搜索、封禁 / 解封、删除；被封禁用户无法发帖与评论
+- 用户管理：搜索、封禁 / 解封、删除、重置密码；被封禁用户无法发帖与评论
 
 ---
 
@@ -141,6 +143,8 @@ MySQL 容器首次启动时会自动执行 `sql/init.sql`：创建 `community_db
 | MinIO | `127.0.0.1:9000` · minioadmin / minioadmin123 · 桶 `community-upload` |
 
 > 图片统一存相对路径 `/files/...`：开发环境由 Vite 把 `/files` 代理到 MinIO 9000，生产由 Nginx 反代，不再需要配置公网图片地址。
+>
+> 邮件：开发环境用 MailHog（`docker compose up -d mailhog`，收件箱 `http://localhost:8025`）；要发真实邮件时在本地 `.env` 配 163 授权码并注入 `MAIL_*` 环境变量。
 
 > 使用本机自建 MySQL 时，改该文件的 `spring.datasource.url` 为对应端口，并手动执行 `sql/init.sql`。
 
@@ -190,14 +194,14 @@ npm run dev            # 浏览器访问 http://localhost:5173
 | 模块 | 接口 |
 | --- | --- |
 | 认证 | `POST /auth/register`、`POST /auth/login`、`POST /auth/logout`、`GET /auth/current-user`、`POST /auth/upload-avatar` |
-| 账号安全 | `PUT /auth/profile`、`PUT /auth/password`、`GET/POST /auth/security-question`、`POST /auth/forgot/question`、`POST /auth/forgot/reset` |
+| 账号安全 | `PUT /auth/profile`、`PUT /auth/password`、`GET /auth/captcha`、`POST /auth/email/send-code`、`POST /auth/email/bind`、`POST /auth/email/rebind`、`POST /auth/forgot/reset-by-code`（密保接口保留但前端已下线） |
 | 帖子 | `GET /post/category/list`、`GET /post/list`（`keyword` 可选，标题/正文模糊搜索）、`GET /post/{id}`、`GET /post/pinned`、`POST /post`、`PUT /post/{id}`、`DELETE /post/{id}`、`DELETE /post/admin/{id}`、`PUT /post/admin/pin/{id}`、`DELETE /post/admin/pin`、`POST /post/image` |
 | 互动 | `POST /post/{id}/like`、`POST /post/{id}/collect`、`GET /post/hot/rank` |
 | 评论 | `GET /post/{postId}/comment/list`、`POST /post/{postId}/comment`、`DELETE /comment/{id}`、`DELETE /comment/admin/{id}` |
 | 消息 | `GET /notify/list`、`GET /notify/unread-count`、`POST /notify/read`、`POST /notify/broadcast` |
 | 私聊 | `GET /chat/threads`、`GET /chat/messages/{userId}`、`POST /chat/send/{userId}`、`POST /chat/read/{userId}`、`GET /chat/unread-count` |
 | 关系 | `GET /user/{id}`、`POST /friend/request|accept|reject|remove/{userId}`、`GET /friend/list`、`GET /friend/pending/list`、`POST /blacklist/add|remove/{userId}`、`GET /blacklist/list` |
-| 管理端 | `GET /admin/user/list`、`POST /admin/user/{id}/ban`、`POST /admin/user/{id}/unban`、`DELETE /admin/user/{id}` |
+| 管理端 | `GET /admin/user/list`、`POST /admin/user/{id}/ban`、`POST /admin/user/{id}/unban`、`DELETE /admin/user/{id}`、`POST /admin/user/{id}/reset-password` |
 | 探测 | `GET /demo/ping` |
 
 ---
@@ -235,6 +239,7 @@ cp deploy/.env.prod.example deploy/.env.prod
 | `MYSQL_ROOT_PASSWORD` | 数据库 root 密码 |
 | `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` | MinIO 账号与密钥 |
 | `REDIS_PASSWORD` | Redis 密码，留空表示不启用 |
+| `MAIL_HOST` / `MAIL_PORT` / `MAIL_USERNAME` / `MAIL_PASSWORD` / `MAIL_FROM` | 163 SMTP（465/SSL，密码是客户端授权码）；开发环境用 MailHog 时无需配置 |
 | `MINIO_PUBLIC_ENDPOINT` | 图片地址前缀，默认 `/files`，一般不用改；只有图片要直连其他对象存储域名时才覆盖 |
 
 ### 3. 上传与启动
@@ -322,6 +327,7 @@ docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.prod up 
 - 首页与登录已落地：三栏骨架 + 紧凑信息流 + 关键词搜索 + 移动端底部 Tab；登录/注册弹窗改分段切换（S5/S6）
 - 帖子详情已落地：左正文 + 右互动/评论（960~1279 左栏进抽屉、评论仍在右侧），相关推荐，移动端吸底操作条；点赞红心常显（未点亮描边、点亮实心）（S7）
 - 地址收口：图片统一存相对路径 `/files`（后端 `public-endpoint=/files`，Vite/Nginx 反代），历史绝对地址批量迁移（`sql/upgrade-v5.sql`）（S1）
+- 邮箱体系已落地：绑定 / 换绑 / 邮箱验证码找回 / 管理员重置密码，图形码 + 双限流 + 失败锁定；密保找回入口下线（alpha2）
 - 修复：计数同步每 5 分钟会刷新帖子「编辑于」时间（`sql/upgrade-v5.sql` 去掉 `post.update_time` 的 `ON UPDATE`）
 - 账号体系：邮箱绑定 + 验证码找回密码（与密保双通道）
 - 个人主页：模块开关 / 排序 + 主题装扮（参考 B 站空间与 GitHub Profile）

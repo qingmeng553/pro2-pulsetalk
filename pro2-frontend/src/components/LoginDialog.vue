@@ -97,6 +97,10 @@
       >
         {{ isRegister ? '注册' : '登录' }}
       </el-button>
+
+      <div v-if="!isRegister" class="pt-auth__forgot">
+        <button type="button" class="pt-auth__link" @click="goForgot">忘记密码？</button>
+      </div>
     </el-form>
 
     <p v-if="isRegister" class="pt-auth__hint">注册成功后自动登录</p>
@@ -105,7 +109,8 @@
 
 <script setup>
 import { computed, nextTick, reactive, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { useRouter } from 'vue-router'
+import { ElMessage, ElNotification } from 'element-plus'
 import { User, Lock, Postcard } from '@element-plus/icons-vue'
 import { authState, applyLogin, refreshUser } from '../store/user'
 import { setBadges } from '../store/badge'
@@ -116,6 +121,7 @@ const loading = ref(false)
 const errorText = ref('')
 const formRef = ref()
 const usernameRef = ref()
+const router = useRouter()
 
 const form = reactive({ username: '', nickname: '', password: '' })
 
@@ -200,10 +206,17 @@ function onClose() {
   isRegister.value = false
 }
 
+/** 忘记密码：关闭弹窗并跳到独立找回页 */
+function goForgot() {
+  authState.dialogVisible = false
+  router.push('/forgot')
+}
+
 async function onSubmit() {
   if (loading.value) return
   loading.value = true
   errorText.value = ''
+  const registerMode = isRegister.value
 
   try {
     await formRef.value.validate()
@@ -214,15 +227,24 @@ async function onSubmit() {
   }
 
   try {
-    const data = isRegister.value ? await registerThenLogin() : await login()
+    const data = registerMode ? await registerThenLogin() : await login()
     await afterAuth(data)
     ElMessage.success(
-      isRegister.value
+      registerMode
         ? '注册成功，已自动登录'
         : `欢迎回来，${data.user.nickname || data.user.username}`
     )
+    if (registerMode) {
+      ElNotification({
+        title: '建议绑定邮箱',
+        message: '绑定后可用验证码找回密码；未绑定邮箱只能联系管理员。',
+        type: 'info',
+        duration: 8000,
+        onClick: () => router.push('/profile')
+      })
+    }
   } catch (e) {
-    errorText.value = messageOf(e, isRegister.value ? '注册失败，请稍后再试' : '登录失败，请稍后再试')
+    errorText.value = messageOf(e, registerMode ? '注册失败，请稍后再试' : '登录失败，请稍后再试')
   } finally {
     loading.value = false
   }
@@ -313,6 +335,25 @@ async function afterAuth(data) {
 .pt-auth__submit {
   width: 100%;
   margin-top: var(--sp-1);
+}
+
+.pt-auth__forgot {
+  margin-top: var(--sp-3);
+  text-align: center;
+}
+
+.pt-auth__link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-link);
+  font-family: inherit;
+  font-size: var(--fs-xs);
+  cursor: pointer;
+}
+
+.pt-auth__link:hover {
+  color: var(--c-primary-hover);
 }
 
 .pt-auth__hint {

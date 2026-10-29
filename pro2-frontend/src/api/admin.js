@@ -13,3 +13,7 @@ export const apiAdminUserUnban = (id) => request.post(`/admin/user/${id}/unban`)
 
 // DELETE /admin/user/{id} 删除用户(逻辑删除)
 export const apiAdminUserDelete = (id) => request.delete(`/admin/user/${id}`)
+
+// POST /admin/user/{id}/reset-password 重置用户密码（会踢出该用户所有会话）
+export const apiAdminResetPassword = (id, newPassword) =>
+  request.post(`/admin/user/${id}/reset-password`, { newPassword })

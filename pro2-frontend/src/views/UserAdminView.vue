@@ -42,7 +42,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="注册时间" min-width="160" />
-        <el-table-column label="操作" width="230" fixed="right">
+        <el-table-column label="操作" width="320" fixed="right">
           <template #default="{ row }">
             <el-button
               v-if="!row.banned"
@@ -65,6 +65,15 @@
             </el-button>
             <el-button
               size="small"
+              type="primary"
+              plain
+              :disabled="row.role === 'ADMIN'"
+              @click="openReset(row)"
+            >
+              重置密码
+            </el-button>
+            <el-button
+              size="small"
               type="danger"
               plain
               :disabled="row.role === 'ADMIN'"
@@ -76,6 +85,17 @@
         </el-table-column>
       </el-table>
     </div>
+
+    <el-dialog v-model="resetVisible" title="重置密码" width="380px" align-center>
+      <p class="reset-tip">
+        为「{{ resetTarget?.nickname }}」设置新密码（6-32 位）。重置后该用户所有登录会话会被踢出。
+      </p>
+      <el-input v-model="resetPwd" type="password" show-password maxlength="32" placeholder="请输入新密码" />
+      <template #footer>
+        <el-button @click="resetVisible = false">取消</el-button>
+        <el-button type="primary" :loading="resetting" @click="doReset">确定重置</el-button>
+      </template>
+    </el-dialog>
 
     <el-pagination
       v-if="total > 10"
@@ -96,13 +116,40 @@ import { Search } from '@element-plus/icons-vue'
 import AdminBadge from '../components/AdminBadge.vue'
 import MiniTag from '../components/MiniTag.vue'
 import { resolveAssetUrl } from '../utils/asset'
-import { apiAdminUserList, apiAdminUserBan, apiAdminUserUnban, apiAdminUserDelete } from '../api/admin'
+import { apiAdminUserList, apiAdminUserBan, apiAdminUserUnban, apiAdminUserDelete, apiAdminResetPassword } from '../api/admin'
 
 const rows = ref([])
 const total = ref(0)
 const page = ref(1)
 const keyword = ref('')
 const loading = ref(false)
+
+// 重置密码
+const resetVisible = ref(false)
+const resetTarget = ref(null)
+const resetPwd = ref('')
+const resetting = ref(false)
+
+function openReset(row) {
+  resetTarget.value = row
+  resetPwd.value = ''
+  resetVisible.value = true
+}
+
+async function doReset() {
+  if (!resetPwd.value || resetPwd.value.length < 6 || resetPwd.value.length > 32) {
+    ElMessage.warning('新密码长度需在6-32位之间')
+    return
+  }
+  resetting.value = true
+  try {
+    await apiAdminResetPassword(resetTarget.value.id, resetPwd.value)
+    ElMessage.success('密码已重置，该用户需用新密码登录')
+    resetVisible.value = false
+  } finally {
+    resetting.value = false
+  }
+}
 
 async function load(p = page.value) {
   loading.value = true
@@ -166,6 +213,12 @@ onMounted(() => load(1))
   display: flex;
   gap: 10px;
   margin-bottom: 14px;
+}
+.reset-tip {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-sub);
 }
 .search {
   max-width: 320px;

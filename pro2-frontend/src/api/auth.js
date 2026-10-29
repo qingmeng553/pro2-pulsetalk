@@ -45,3 +45,20 @@ export const apiForgotQuestion = (username) => request.post('/auth/forgot/questi
 // POST /auth/forgot/reset 忘记密码-校验答案并重置密码(公开)
 export const apiForgotReset = (username, answer, newPassword) =>
   request.post('/auth/forgot/reset', { username, answer, newPassword })
+
+// ==================== alpha2：邮箱绑定 / 找回 ====================
+
+// GET /auth/captcha 图形验证码(返回 captchaId + dataURL)
+export const apiCaptcha = () => request.get('/auth/captcha')
+
+// POST /auth/email/send-code 发送邮箱验证码(scene=bind|rebind|reset)
+export const apiSendEmailCode = (data) => request.post('/auth/email/send-code', data)
+
+// POST /auth/email/bind 首次绑定邮箱
+export const apiBindEmail = (data) => request.post('/auth/email/bind', data)
+
+// POST /auth/email/rebind 换绑邮箱
+export const apiRebindEmail = (data) => request.post('/auth/email/rebind', data)
+
+// POST /auth/forgot/reset-by-code 邮箱验证码重置密码
+export const apiResetByCode = (data) => request.post('/auth/forgot/reset-by-code', data)
