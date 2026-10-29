@@ -16,7 +16,7 @@
         <span class="row-time">{{ fromNow(post.createTime) }}</span>
         <span class="row-stats">
           <span class="stat"><el-icon><View /></el-icon>{{ fmtCount(post.viewCount) }}</span>
-          <span class="stat"><el-icon><CaretTop /></el-icon>{{ fmtCount(post.likeCount) }}</span>
+          <span class="stat"><HeartIcon class="stat-icon" />{{ fmtCount(post.likeCount) }}</span>
           <span class="stat"><el-icon><Star /></el-icon>{{ fmtCount(post.collectCount) }}</span>
         </span>
         <el-button
@@ -42,9 +42,10 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { View, CaretTop, Star, Delete } from '@element-plus/icons-vue'
+import { View, Star, Delete } from '@element-plus/icons-vue'
 import UserChip from './UserChip.vue'
 import MiniTag from './MiniTag.vue'
+import HeartIcon from './HeartIcon.vue'
 import { fromNow, fmtCount } from '../utils/format'
 import { apiAdminDeletePost } from '../api/post'
 
@@ -142,6 +143,11 @@ async function askAdminDelete() {
   align-items: center;
   gap: 3px;
   font-variant-numeric: tabular-nums;
+}
+
+.stat-icon {
+  width: 12px;
+  height: 12px;
 }
 
 .row-del {

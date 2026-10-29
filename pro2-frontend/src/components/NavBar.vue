@@ -1,5 +1,5 @@
 <template>
-  <header class="navbar" :class="{ scrolled }">
+  <header class="navbar" :class="{ scrolled, 'is-home': route.name === 'home' }">
     <div class="navbar-inner">
       <!-- 移动端左栏抽屉入口 -->
       <button class="menu-btn" aria-label="打开菜单" @click="uiState.sidebarOpen = true">
@@ -331,6 +331,17 @@ onBeforeUnmount(() => {
 .user-chip .nick {
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
+}
+
+@media (max-width: 1279px) {
+  /* 首页 960~1279 已有左栏，不重复显示抽屉按钮；其他页面用抽屉补导航 */
+  .navbar:not(.is-home) .menu-btn {
+    display: inline-flex;
+  }
+
+  .act-app {
+    display: none;
+  }
 }
 
 @media (max-width: 959px) {

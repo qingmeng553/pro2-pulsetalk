@@ -80,7 +80,7 @@
       <section class="side-card interact-card">
         <div class="interact-grid">
           <button class="interact-btn" :class="{ active: detail.liked }" @click="onLike">
-            <el-icon :size="20"><CaretTop /></el-icon>
+            <HeartIcon class="interact-icon" :filled="detail.liked" />
             <span class="interact-num">{{ detail.likeCount || 0 }}</span>
             <span class="interact-label">点赞</span>
           </button>
@@ -196,7 +196,7 @@
     <!-- 移动端吸底操作条（详情页不显示底部 Tab） -->
     <div v-if="detail" class="mobile-actions">
       <button :class="{ active: detail.liked }" @click="onLike">
-        <el-icon><CaretTop /></el-icon>
+        <HeartIcon class="bar-icon" :filled="detail.liked" />
         <span>{{ detail.likeCount || 0 }}</span>
       </button>
       <button :class="{ active: detail.collected }" @click="onCollect">
@@ -220,11 +220,12 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  Delete, EditPen, CaretTop, Star, View, ChatDotRound, Back
+  Delete, EditPen, Star, View, ChatDotRound, Back
 } from '@element-plus/icons-vue'
 import MarkdownViewer from '../components/MarkdownViewer.vue'
 import HomeSidebar from '../components/HomeSidebar.vue'
 import RelatedPosts from '../components/RelatedPosts.vue'
+import HeartIcon from '../components/HeartIcon.vue'
 import UserChip from '../components/UserChip.vue'
 import MiniTag from '../components/MiniTag.vue'
 import { apiPostDetail, apiPostList, apiLikePost, apiCollectPost, apiDeletePost, apiAdminDeletePost } from '../api/post'
@@ -249,10 +250,10 @@ function onScroll() {
   readProgress.value = total > 0 ? Math.min(100, Math.max(0, (window.scrollY / total) * 100)) : 0
 }
 
-// 1280 以上相关推荐在正文下方；窄屏放到评论之后，保证评论紧贴正文
-const isWide = ref(window.innerWidth >= 1280)
+// ≥960 相关推荐在正文下方；<960 放到评论之后，保证评论紧贴正文
+const isWide = ref(window.innerWidth >= 960)
 function onResize() {
-  isWide.value = window.innerWidth >= 1280
+  isWide.value = window.innerWidth >= 960
 }
 
 // 评论
@@ -663,6 +664,11 @@ onBeforeUnmount(() => {
   color: var(--c-like);
 }
 
+.interact-icon {
+  width: 20px;
+  height: 20px;
+}
+
 .interact-btn.collect.active {
   background: var(--c-warning-weak);
   border-color: var(--c-accent);
@@ -797,18 +803,6 @@ onBeforeUnmount(() => {
   margin-top: var(--sp-4);
 }
 
-@media (max-width: 1279px) {
-  .related-narrow {
-    grid-column: 2;
-  }
-}
-
-@media (max-width: 959px) {
-  .related-narrow {
-    grid-column: auto;
-  }
-}
-
 /* ---------- 移动端吸底操作条 ---------- */
 .mobile-actions {
   display: none;
@@ -816,7 +810,11 @@ onBeforeUnmount(() => {
 
 @media (max-width: 1279px) {
   .detail-shell {
-    grid-template-columns: var(--left-w) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+
+  .detail-left {
+    display: none;
   }
 
   .detail-side {
@@ -885,6 +883,11 @@ onBeforeUnmount(() => {
 
   .mobile-actions button .el-icon {
     font-size: 20px;
+  }
+
+  .mobile-actions .bar-icon {
+    width: 20px;
+    height: 20px;
   }
 
   .mobile-actions button.active {
