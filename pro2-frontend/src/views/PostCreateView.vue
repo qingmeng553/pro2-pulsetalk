@@ -19,18 +19,20 @@
         </el-form-item>
 
         <el-form-item label="板块分类" prop="categoryId">
-          <el-select v-model="form.categoryId" placeholder="选择分类" style="width: 240px">
+          <el-select v-model="form.categoryId" placeholder="选择分类" class="category-select">
             <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.id" />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="正文(Markdown)">
+        <el-form-item label="正文">
           <div class="editor-head">
-            <el-radio-group v-model="mode" size="small">
-              <el-radio-button value="write">编辑</el-radio-button>
-              <el-radio-button value="preview">预览</el-radio-button>
-            </el-radio-group>
-            <EmojiPicker @pick="insertEmoji" />
+            <div class="editor-left">
+              <el-radio-group v-model="mode" size="small">
+                <el-radio-button value="write">编辑</el-radio-button>
+                <el-radio-button value="preview">预览</el-radio-button>
+              </el-radio-group>
+              <EmojiPicker @pick="insertEmoji" />
+            </div>
             <span class="markdown-tip">支持 Markdown / 表情 / 拖拽图片外链，Ctrl+Enter 快速发布</span>
           </div>
           <div class="editor-area">
@@ -177,23 +179,40 @@ onMounted(() => {
 
 <style scoped>
 .create-page {
-  max-width: 860px;
+  max-width: 900px;
 }
 .card {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 24px 26px;
+  padding: 28px 30px;
+}
+.category-select {
+  width: 240px;
 }
 .editor-head {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
   margin-bottom: 10px;
+}
+.editor-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .markdown-tip {
   font-size: 12px;
   color: var(--text-sub);
+}
+.editor-area {
+  width: 100%;
+}
+.editor-area :deep(.el-textarea) {
+  width: 100%;
 }
 .editor-area :deep(.el-textarea__inner) {
   font-size: 14px;
@@ -201,19 +220,22 @@ onMounted(() => {
   border-radius: 12px;
 }
 .preview-box {
+  width: 100%;
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 16px 18px;
-  min-height: 220px;
-  max-height: 460px;
+  min-height: 360px;
+  max-height: 560px;
   overflow: auto;
-  background: #fff;
+  background: var(--bg-elevated);
 }
 .actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 6px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
 }
 /* ---------- 移动端适配 ---------- */
 @media (max-width: 640px) {
@@ -221,9 +243,15 @@ onMounted(() => {
     padding: 16px 14px;
     border-radius: 14px;
   }
+  .category-select {
+    width: 100%;
+  }
   .editor-head {
-    flex-wrap: wrap;
     gap: 8px;
+  }
+  .editor-left {
+    width: 100%;
+    justify-content: space-between;
   }
   .markdown-tip {
     display: none;
@@ -236,6 +264,7 @@ onMounted(() => {
   }
   .preview-box {
     padding: 12px 12px;
+    min-height: 300px;
   }
 }
 /* 封禁提示条 */
