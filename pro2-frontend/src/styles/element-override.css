@@ -11,7 +11,9 @@
   /* ---------- 兼容 1.0.x 的旧变量名（值全部指向新 Token） ---------- */
   --brand: var(--c-primary);
   --brand-dark: var(--c-primary-hover);
-  --brand-gradient: var(--grad-subtle);
+  /* 1.0.x 里 --brand-gradient 都是"彩色底 + 白字"（气泡、选中分类、点赞态等），
+     不能映射成白→灰，否则白字压白底看不见；统一落成实心主色。 */
+  --brand-gradient: var(--c-primary);
   --bg: var(--bg-subtle);
   --card: var(--bg-elevated);
   --text: var(--text-primary);
