@@ -77,7 +77,7 @@ public class PostServiceImpl implements PostService {
     }
     // ---- 列表 ----
     @Override
-    public PageVO<PostListItemVO> pageList(long page, long size, Long categoryId, Long userId) {
+    public PageVO<PostListItemVO> pageList(long page, long size, Long categoryId, Long userId, String keyword) {
         // 列表不返回大字段 content
         QueryWrapper<Post> qw = new QueryWrapper<>();
         qw.select("id", "user_id", "category_id", "title", "img_urls",
@@ -88,6 +88,15 @@ public class PostServiceImpl implements PostService {
         if (userId != null) {
             // v2：个人主页“TA的帖子”按作者过滤
             qw.eq("user_id", userId);
+        }
+        if (StringUtils.hasText(keyword)) {
+            // v1.1.0：标题/正文模糊搜索(参数只增不改)；限制长度，避免超长 LIKE
+            String kw = keyword.trim();
+            if (kw.length() > 50) {
+                kw = kw.substring(0, 50);
+            }
+            final String like = kw;
+            qw.and(w -> w.like("title", like).or().like("content", like));
         }
         // 最新发布在前(逻辑删除行由 @TableLogic 自动过滤)
         qw.orderByDesc("create_time").orderByDesc("id");

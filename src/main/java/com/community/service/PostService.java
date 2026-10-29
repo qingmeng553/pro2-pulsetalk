@@ -25,8 +25,9 @@ public interface PostService {
      * @param size       每页条数
      * @param categoryId 分类ID(为空查全部)
      * @param userId     作者ID(为空查全部；个人主页“TA的帖子”使用)
+     * @param keyword    搜索词(为空不筛选；标题/正文模糊匹配)
      */
-    PageVO<PostListItemVO> pageList(long page, long size, Long categoryId, Long userId);
+    PageVO<PostListItemVO> pageList(long page, long size, Long categoryId, Long userId, String keyword);
 
     /**
      * 帖子详情(游客可访问)：命中热点缓存；每次访问 Redis 浏览量自增 + 热度榜更新

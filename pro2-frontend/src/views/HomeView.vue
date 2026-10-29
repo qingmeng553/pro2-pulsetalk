@@ -1,83 +1,158 @@
 <template>
-  <div class="page-container home">
-    <!-- v2：置顶规则帖(管理员共同维护的社区规则，仅一条) -->
-    <div v-if="pinnedPost" class="pin-banner" @click="goPinned">
-      <div class="pin-flag">📌 置顶公告</div>
-      <div class="pin-body">
-        <span class="pin-title">{{ pinnedPost.title }}</span>
-        <span class="pin-desc">社区规则 · 点击查看详情</span>
+  <div class="home-shell">
+    <!-- 左栏：首页/我的 + 分类 + 大家都在看（移动端收进抽屉） -->
+    <aside class="home-left">
+      <HomeSidebar />
+    </aside>
+
+    <!-- 中栏：信息流 -->
+    <main class="home-main">
+      <!-- 置顶规则帖 -->
+      <div v-if="pinnedPost && !keyword && !homeState.activeCategory" class="pin-banner" @click="goPinned">
+        <span class="pin-flag">置顶</span>
+        <div class="pin-body">
+          <span class="pin-title">{{ pinnedPost.title }}</span>
+          <span class="pin-desc">社区规则 · 点击查看</span>
+        </div>
       </div>
-    </div>
 
-    <!-- 分类筛选 -->
-    <div class="cat-bar">
-      <span
-        v-for="c in categories"
-        :key="c.id"
-        class="cat-chip"
-        :class="{ active: activeCategory === c.id }"
-        @click="switchCategory(c.id)"
-      >
-        {{ c.name }}
-      </span>
-    </div>
+      <!-- 信息流标题 -->
+      <div class="feed-head">
+        <h1 class="feed-title">{{ feedTitle }}</h1>
+        <span v-if="total > 0" class="feed-count">{{ total }} 条</span>
+        <button v-if="keyword" class="feed-clear" @click="clearSearch">清除搜索</button>
+      </div>
 
-    <!-- 帖子流 -->
-    <div v-loading="loading && !posts.length" class="post-grid-wrap">
-      <div ref="gridRef" class="post-grid">
-        <PostCard
-          v-for="p in posts"
-          :key="p.id"
-          :post="p"
-          :admin-mode="isAdmin"
-          class="post-card"
-          @deleted="onAdminDeleted"
+      <!-- 列表 -->
+      <section class="feed-card">
+        <el-skeleton v-if="loading && !posts.length" class="feed-skeleton" :rows="6" animated />
+
+        <template v-else-if="posts.length">
+          <PostRow
+            v-for="p in posts"
+            :key="p.id"
+            :post="p"
+            :admin-mode="isAdmin"
+            @deleted="onAdminDeleted"
+          />
+        </template>
+
+        <el-empty
+          v-else-if="!loading && !error"
+          :description="emptyText"
+          :image-size="72"
         />
+
+        <div v-else-if="error" class="feed-error">
+          <span>加载失败，请稍后再试</span>
+          <el-button link type="primary" @click="fetchPosts(true)">重试</el-button>
+        </div>
+      </section>
+
+      <!-- 加载更多（滚动到底自动触发，按钮兜底） -->
+      <div v-if="posts.length && hasMore" class="feed-more">
+        <el-button text type="primary" :loading="loading" @click="loadMore">
+          {{ loading ? '加载中' : '加载更多' }}
+        </el-button>
       </div>
-      <div v-if="!loading && !posts.length" class="empty-tip">这个分类下还没有帖子，快来抢沙发吧 🛋️</div>
-    </div>
+      <p v-else-if="posts.length" class="feed-end">— 到底了 —</p>
+    </main>
 
-    <!-- 加载更多 -->
-    <div v-if="posts.length && hasMore" class="load-more">
-      <el-button :loading="loading" round @click="loadMore">加载更多</el-button>
-    </div>
-    <div v-else-if="posts.length" class="load-more done">—— 到底啦 ——</div>
-
-    <!-- 移动端悬浮发帖 -->
-    <router-link v-if="isLoggedIn" to="/post/create" class="fab-post" title="发帖">＋</router-link>
+    <!-- 右栏：登录/用户卡片 + 活动位 -->
+    <aside class="home-rail">
+      <HomeRail />
+    </aside>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref, computed, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
-import PostCard from '../components/PostCard.vue'
-import { apiCategoryList, apiPostList, apiPinnedPost } from '../api/post'
-import { runCardEntrance, bindHoverLift } from '../utils/d3fx'
-import { authState, isLoggedIn } from '../store/user'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import PostRow from '../components/PostRow.vue'
+import HomeSidebar from '../components/HomeSidebar.vue'
+import HomeRail from '../components/HomeRail.vue'
+import { apiPostList, apiPinnedPost } from '../api/post'
+import { authState } from '../store/user'
+import { homeState, ensureHomeData } from '../store/home'
 
+const route = useRoute()
 const router = useRouter()
-const categories = ref([])
-const activeCategory = ref(null) // null=全部
+
 const posts = ref([])
 const page = ref(1)
-const pageSize = 10
+const pageSize = 15
 const total = ref(0)
 const loading = ref(false)
-const gridRef = ref()
+const error = ref(false)
 const pinnedPost = ref(null)
 
-// 管理员登录后帖子卡片显示管理员删除按钮
+// 关键词来自地址栏 ?q=（顶栏搜索框只负责跳转）
+const keyword = computed(() => String(route.query.q || '').trim())
+
 const isAdmin = computed(() => authState.user?.role === 'ADMIN')
+const hasMore = computed(() => posts.value.length < total.value)
 
-const hasMore = () => posts.value.length < total.value
+const feedTitle = computed(() => {
+  if (keyword.value) return `搜索「${keyword.value}」`
+  if (homeState.activeCategory) {
+    const cat = homeState.categories.find((c) => String(c.id) === String(homeState.activeCategory))
+    return cat ? cat.name : '分类帖子'
+  }
+  return '最新帖子'
+})
 
-/** 管理员删除后从当前列表移除该帖 */
-function onAdminDeleted(postId) {
-  posts.value = posts.value.filter((p) => String(p.id) !== String(postId))
+const emptyText = computed(() => {
+  if (keyword.value) return '没有找到相关帖子，换个词试试'
+  if (homeState.activeCategory) return '这个分类还没有帖子'
+  return '还没有帖子，发一条试试'
+})
+
+// 请求序号：切换分类/搜索时丢弃过期响应
+let reqId = 0
+
+async function fetchPosts(reset = false) {
+  const id = ++reqId
+  loading.value = true
+  error.value = false
+  try {
+    const data = await apiPostList({
+      page: reset ? 1 : page.value,
+      size: pageSize,
+      categoryId: homeState.activeCategory || undefined,
+      keyword: keyword.value || undefined
+    })
+    if (id !== reqId) return
+    total.value = Number(data.total) || 0
+    if (reset) {
+      posts.value = data.records || []
+      page.value = 1
+    } else {
+      posts.value = [...posts.value, ...(data.records || [])]
+    }
+  } catch (e) {
+    if (id === reqId) error.value = true
+  } finally {
+    if (id === reqId) loading.value = false
+  }
 }
 
-/** 置顶规则帖详情 */
+async function loadMore() {
+  if (loading.value || !hasMore.value) return
+  page.value += 1
+  await fetchPosts(false)
+}
+
+function clearSearch() {
+  router.push('/')
+}
+
+/** 管理员删除后从当前列表移除，并刷新左栏热度 */
+function onAdminDeleted(postId) {
+  posts.value = posts.value.filter((p) => String(p.id) !== String(postId))
+  total.value = Math.max(0, total.value - 1)
+  ensureHomeData(true)
+}
+
 async function loadPinned() {
   try {
     const data = await apiPinnedPost()
@@ -91,190 +166,192 @@ function goPinned() {
   if (pinnedPost.value) router.push(`/post/${pinnedPost.value.id}`)
 }
 
-async function loadCategories() {
-  categories.value = await apiCategoryList()
+// 滚动到底自动加载
+function onScroll() {
+  if (!hasMore.value || loading.value) return
+  const el = document.documentElement
+  if (el.scrollHeight - el.scrollTop - el.clientHeight < 320) loadMore()
 }
 
-async function fetchPosts(reset = false) {
-  loading.value = true
-  try {
-    const data = await apiPostList({
-      page: reset ? 1 : page.value,
-      size: pageSize,
-      categoryId: activeCategory.value || undefined
-    })
-    total.value = Number(data.total) || 0
-    if (reset) {
-      posts.value = data.records
-      page.value = 1
-    } else {
-      posts.value = [...posts.value, ...data.records]
-    }
-    // D3 入场动画(新卡片错落淡入)
-    await nextTick()
-    runCardEntrance('.home .post-grid')
-    bindHoverLift('.home .post-card')
-  } finally {
-    loading.value = false
-  }
-}
-
-function switchCategory(id) {
-  activeCategory.value = id === activeCategory.value ? null : id
-  fetchPosts(true)
-}
-
-async function loadMore() {
-  if (loading.value) return
-  page.value += 1
-  await fetchPosts(false)
-}
+watch([keyword, () => homeState.activeCategory], () => fetchPosts(true))
 
 onMounted(() => {
-  loadCategories()
+  ensureHomeData()
   loadPinned()
   fetchPosts(true)
+  window.addEventListener('scroll', onScroll, { passive: true })
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll)
 })
 </script>
 
 <style scoped>
-.cat-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 18px;
+.home-shell {
+  display: grid;
+  grid-template-columns: var(--left-w) minmax(0, 1fr) var(--right-w);
+  gap: var(--gap-col);
+  align-items: start;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--sp-4) var(--sp-6) var(--sp-12);
 }
+
+.home-left,
+.home-rail {
+  position: sticky;
+  top: calc(var(--header-h) + var(--sp-4));
+  max-height: calc(100vh - var(--header-h) - var(--sp-8));
+  overflow-y: auto;
+}
+
+.home-main {
+  min-width: 0;
+}
+
+/* ---------- 置顶规则帖 ---------- */
 .pin-banner {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: linear-gradient(90deg, #fff7e8, #fff);
-  border: 1px solid #ffe1a8;
-  border-radius: 14px;
-  padding: 12px 18px;
-  margin-bottom: 16px;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--c-warning-weak);
+  border: 1px solid var(--c-warning);
+  border-radius: var(--r-md);
   cursor: pointer;
-  transition: all 0.2s;
 }
+
 .pin-banner:hover {
-  border-color: #f5b94c;
-  box-shadow: 0 6px 18px rgba(245, 185, 76, 0.18);
-  transform: translateY(-1px);
+  background: var(--c-accent-weak);
 }
+
 .pin-flag {
-  background: #f5a623;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 10px;
-  white-space: nowrap;
+  flex: none;
+  padding: 1px 8px;
+  border-radius: var(--r-pill);
+  background: var(--c-warning);
+  color: var(--text-inverse);
+  font-size: var(--fs-xs);
+  line-height: 18px;
 }
+
 .pin-body {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
+
 .pin-title {
-  font-weight: 700;
-  font-size: 15px;
   overflow: hidden;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .pin-desc {
-  font-size: 12px;
-  color: var(--text-sub);
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
 }
-.cat-chip {
-  padding: 6px 16px;
-  border-radius: 18px;
-  background: #fff;
-  border: 1px solid var(--border);
-  color: var(--text-sub);
-  font-size: 14px;
+
+/* ---------- 信息流标题 ---------- */
+.feed-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+  padding: 0 var(--sp-1);
+}
+
+.feed-title {
+  margin: 0;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+}
+
+.feed-count {
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
+}
+
+.feed-clear {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-link);
+  font-family: inherit;
+  font-size: var(--fs-xs);
   cursor: pointer;
-  transition: all 0.2s;
 }
-.cat-chip:hover {
-  color: var(--brand);
-  border-color: var(--brand);
+
+/* ---------- 列表容器 ---------- */
+.feed-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-md);
+  overflow: hidden;
 }
-.cat-chip.active {
-  background: var(--brand-gradient);
-  border-color: transparent;
-  color: #fff;
-  font-weight: 600;
+
+.feed-skeleton {
+  padding: var(--sp-4);
 }
-.post-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
+
+.feed-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--sp-10) 0;
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
 }
-.load-more {
+
+.feed-more {
+  display: flex;
+  justify-content: center;
+  padding: var(--sp-4) 0 var(--sp-2);
+}
+
+.feed-end {
+  margin: var(--sp-4) 0 0;
   text-align: center;
-  margin-top: 26px;
-  color: var(--text-sub);
-  font-size: 13px;
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
 }
 
-/* 移动端悬浮发帖按钮 */
-.fab-post {
-  display: none;
-}
-@media (max-width: 640px) {
-  .fab-post {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: fixed;
-    right: 18px;
-    bottom: 24px;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: var(--brand-gradient);
-    color: #fff;
-    font-size: 26px;
-    line-height: 1;
-    box-shadow: 0 8px 20px rgba(91, 124, 250, 0.35);
-    z-index: 15;
-    transition: transform 0.2s ease;
+@media (max-width: 1279px) {
+  .home-shell {
+    grid-template-columns: var(--left-w) minmax(0, 1fr);
   }
-  .fab-post:active {
-    transform: scale(0.92);
-  }
-}
 
-/* ---------- 移动端适配 ---------- */
-@media (max-width: 640px) {
-  .cat-bar {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .cat-bar::-webkit-scrollbar {
+  .home-rail {
     display: none;
   }
-  .cat-chip {
-    flex: none;
-    padding: 5px 13px;
-    font-size: 13px;
+}
+
+@media (max-width: 959px) {
+  .home-shell {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--sp-3) var(--sp-4) var(--sp-8);
   }
-  .post-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+
+  .home-left {
+    display: none;
   }
-  .pin-banner {
-    padding: 10px 12px;
-    gap: 8px;
+}
+
+@media (max-width: 639px) {
+  .home-shell {
+    padding: var(--sp-2) var(--sp-3) var(--sp-6);
   }
-  .pin-title {
-    font-size: 14px;
-  }
-  .pin-desc {
-    font-size: 11px;
+
+  .feed-head {
+    padding: 0 var(--sp-1);
   }
 }
 </style>

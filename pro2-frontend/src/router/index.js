@@ -10,7 +10,6 @@ const routes = [
   { path: '/post/create', name: 'post-create', component: () => import('../views/PostCreateView.vue'), meta: { title: '发帖', requiresAuth: true } },
   { path: '/post/edit/:id', name: 'post-edit', component: () => import('../views/PostCreateView.vue'), meta: { title: '编辑帖子', requiresAuth: true } },
   { path: '/post/:id', name: 'post-detail', component: () => import('../views/PostDetailView.vue'), meta: { title: '帖子详情' } },
-  { path: '/rank', name: 'rank', component: () => import('../views/RankView.vue'), meta: { title: '热度排行榜' } },
   { path: '/profile', name: 'profile', component: () => import('../views/ProfileView.vue'), meta: { title: '个人中心', requiresAuth: true } },
   // 消息 / 聊天 / 他人主页
   { path: '/msg', name: 'msg', component: () => import('../views/MessageCenterView.vue'), meta: { title: '消息', requiresAuth: true } },

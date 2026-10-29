@@ -10,6 +10,20 @@
       </transition>
     </router-view>
 
+    <!-- 移动端底部 Tab -->
+    <MobileTabBar />
+
+    <!-- 移动端左栏抽屉（内容与桌面左栏同一组件） -->
+    <el-drawer
+      v-model="uiState.sidebarOpen"
+      title="导航"
+      direction="ltr"
+      size="288px"
+      class="side-drawer"
+    >
+      <HomeSidebar />
+    </el-drawer>
+
     <!-- 全局登录确认弹窗 -->
     <LoginDialog />
   </div>
@@ -17,10 +31,18 @@
 
 <script setup>
 import NavBar from './components/NavBar.vue'
+import HomeSidebar from './components/HomeSidebar.vue'
+import MobileTabBar from './components/MobileTabBar.vue'
 import LoginDialog from './components/LoginDialog.vue'
+import { uiState } from './store/ui'
 </script>
 
 <style scoped>
+.app-shell {
+  min-height: 100vh;
+  background: var(--bg-page);
+}
+
 .fade-slide-enter-active,
 .fade-slide-leave-active {
   transition: opacity 0.22s ease, transform 0.22s ease;
@@ -32,5 +54,19 @@ import LoginDialog from './components/LoginDialog.vue'
 .fade-slide-leave-to {
   opacity: 0;
   transform: translateY(-6px);
+}
+
+@media (max-width: 959px) {
+  .app-shell {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom));
+  }
+}
+</style>
+
+<style>
+/* 抽屉是 teleport 到 body 的，只能用全局样式；前缀限定 .side-drawer */
+.side-drawer .el-drawer__body {
+  padding: var(--sp-3);
+  background: var(--bg-subtle);
 }
 </style>

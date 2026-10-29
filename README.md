@@ -1,8 +1,8 @@
 # PulseTalk
 
-以 Redis 为核心场景的社区系统：帖子、评论、点赞收藏、热度榜单、私聊、好友、站内通知与后台管理。
+以 Redis 为核心场景的社区系统：帖子、评论、点赞收藏、热度推荐、私聊、好友、站内通知与后台管理。
 
-互动类数据（点赞 / 收藏 / 浏览）只写 Redis，由定时任务批量落库；详情页采用 Cache-Aside 缓存并配合空值缓存与随机过期；热度榜基于 ZSet 实时计算；接口层使用 Redis 计数器限流；登录会话同样托管在 Redis。前端为 Vue 3 单页应用，适配桌面与移动端浏览器。
+互动类数据（点赞 / 收藏 / 浏览）只写 Redis，由定时任务批量落库；详情页采用 Cache-Aside 缓存并配合空值缓存与随机过期；热度推荐基于 ZSet 实时计算；接口层使用 Redis 计数器限流；登录会话同样托管在 Redis。前端为 Vue 3 单页应用，适配桌面与移动端浏览器。
 
 ---
 
@@ -11,7 +11,7 @@
 **内容社区**
 - 帖子：Markdown 正文、emoji、最多 9 张配图，支持编辑与逻辑删除
 - 评论：一级评论（楼层号）、分页浏览、作者与管理员删除
-- 分类筛选、分页帖子流、热度排行榜（ECharts 条形图，展示 Top10，点击条形直接进入对应帖子）
+- 三栏首页（左导航 / 信息流 / 活动位）、分类筛选、关键词搜索、分页帖子流、大家都在看（热度 Top5）
 - 浏览量、点赞、收藏计数，详情页展示实时状态
 
 **社交互动**
@@ -66,7 +66,7 @@
 ### 实现要点
 - **计数异步落库**：点赞 / 收藏 / 浏览只操作 Redis，脏标记集合记录变更帖子，定时任务每 5 分钟以 Redis 绝对值为准覆盖写回 MySQL，写库幂等；读取端直接取 Redis 实时值
 - **缓存**：Cache-Aside 旁路缓存，更新数据库后失效缓存；空值缓存拦截不存在的 ID；TTL 加入 30~60 分钟随机偏移
-- **热度榜**：点赞 ±3、收藏 ±5、浏览 +0.1 实时增量维护 ZSet，读取时按分数倒序取 Top10 并回表补全标题与分类；Redis 榜单为空时启动自动按数据库计数重建
+- **热度推荐**：点赞 ±3、收藏 ±5、浏览 +0.1 实时增量维护 ZSet，首页左栏按分数倒序取 Top5 供「大家都在看」；Redis 榜单为空时启动自动按数据库计数重建
 - **限流**：Redis 计数器固定窗口，发帖 3 次/分钟、评论 10 次/分钟；忘记密码有独立限流
 - **会话**：Sa-Token 登录态持久化 Redis，支持多端与多实例共享
 - **上传**：MinIO 桶自动创建并设置公共读；扩展名白名单 + 文件头魔数 + 5MB 上限校验
@@ -175,7 +175,7 @@ npm run dev            # 浏览器访问 http://localhost:5173
 1. 首页可浏览帖子流与置顶公告，未登录点点赞会弹出登录框
 2. 登录后顶栏立即显示昵称（admin 带管理员徽章），无需刷新
 3. 发帖支持 Markdown、emoji 与多图上传，详情页可预览图片
-4. 点赞/收藏即时生效，热度榜分数同步变化
+4. 点赞/收藏即时生效，左栏「大家都在看」分数同步变化
 5. 消息中心可看到点赞/评论/收藏/好友通知，评论通知可跳转帖子定位楼层
 6. 私聊：非好友双方各限 1 条，加好友后可继续
 7. 个人中心可改昵称、改密码、设置密保问题；退出后用「忘记密码」可自助重置
@@ -189,7 +189,7 @@ npm run dev            # 浏览器访问 http://localhost:5173
 | --- | --- |
 | 认证 | `POST /auth/register`、`POST /auth/login`、`POST /auth/logout`、`GET /auth/current-user`、`POST /auth/upload-avatar` |
 | 账号安全 | `PUT /auth/profile`、`PUT /auth/password`、`GET/POST /auth/security-question`、`POST /auth/forgot/question`、`POST /auth/forgot/reset` |
-| 帖子 | `GET /post/category/list`、`GET /post/list`、`GET /post/{id}`、`GET /post/pinned`、`POST /post`、`PUT /post/{id}`、`DELETE /post/{id}`、`DELETE /post/admin/{id}`、`PUT /post/admin/pin/{id}`、`DELETE /post/admin/pin`、`POST /post/image` |
+| 帖子 | `GET /post/category/list`、`GET /post/list`（`keyword` 可选，标题/正文模糊搜索）、`GET /post/{id}`、`GET /post/pinned`、`POST /post`、`PUT /post/{id}`、`DELETE /post/{id}`、`DELETE /post/admin/{id}`、`PUT /post/admin/pin/{id}`、`DELETE /post/admin/pin`、`POST /post/image` |
 | 互动 | `POST /post/{id}/like`、`POST /post/{id}/collect`、`GET /post/hot/rank` |
 | 评论 | `GET /post/{postId}/comment/list`、`POST /post/{postId}/comment`、`DELETE /comment/{id}`、`DELETE /comment/admin/{id}` |
 | 消息 | `GET /notify/list`、`GET /notify/unread-count`、`POST /notify/read`、`POST /notify/broadcast` |
@@ -317,6 +317,7 @@ docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.prod up 
 - 界面体系重构：统一设计 Token（颜色 / 字号 / 间距 / 圆角 / 阴影 / 动效），去除渐变与彩色阴影
 - 布局重构：三栏骨架（左侧导航 + 中间信息流 + 右侧活动位），帖子详情改为「左正文 + 右互动」
 - 交互调整：以滚动浏览为主，取消榜单排名页，改为「大家都在看」
+- 首页与登录已落地：三栏骨架 + 紧凑信息流 + 关键词搜索 + 移动端底部 Tab；登录/注册弹窗改分段切换（S5/S6）
 - 账号体系：邮箱绑定 + 验证码找回密码（与密保双通道）
 - 个人主页：模块开关 / 排序 + 主题装扮（参考 B 站空间与 GitHub Profile）
 - 多端：Capacitor 壳的移动 App（1.2.0 起全功能对齐）

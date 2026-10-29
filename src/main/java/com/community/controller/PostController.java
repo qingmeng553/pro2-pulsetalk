@@ -46,13 +46,14 @@ public class PostController {
         return R.ok(postService.listCategories());
     }
 
-    /** 帖子分页列表，支持分类筛选与作者筛选(游客可访问) */
+    /** 帖子分页列表，支持分类筛选、作者筛选与关键词搜索(游客可访问) */
     @GetMapping("/list")
     public R<PageVO<PostListItemVO>> list(@RequestParam(defaultValue = "1") long page,
                                           @RequestParam(defaultValue = "10") long size,
                                           @RequestParam(required = false) Long categoryId,
-                                          @RequestParam(required = false) Long userId) {
-        return R.ok(postService.pageList(page, size, categoryId, userId));
+                                          @RequestParam(required = false) Long userId,
+                                          @RequestParam(required = false) String keyword) {
+        return R.ok(postService.pageList(page, size, categoryId, userId, keyword));
     }
 
     /** 帖子详情(游客可访问；浏览量 Redis 自增；命中热点缓存) */
