@@ -171,7 +171,9 @@
               :class="{ active: draft.theme.pack === id }"
               @click="selectPack(id)"
             >
-              <span class="theme-dot" :style="{ background: THEMES[id].accent }"></span>
+              <span class="theme-dot" :style="{ background: THEMES[id].vars.bg }">
+                <i class="theme-dot-accent" :style="{ background: THEMES[id].accent }"></i>
+              </span>
               <span class="theme-name">{{ THEMES[id].name }}</span>
             </button>
           </div>
@@ -691,10 +693,21 @@ onBeforeUnmount(() => {
 }
 
 .theme-dot {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--border-color);
   border-radius: 50%;
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-dot-accent {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
 }
 
 .field-label {
